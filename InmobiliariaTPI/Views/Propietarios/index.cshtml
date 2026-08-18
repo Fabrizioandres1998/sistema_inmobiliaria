@@ -1,0 +1,26 @@
+@model IEnumerable<InmobiliariaTPI.Models.Propietario>
+
+@{
+    ViewData["Title"] = "Propietarios";
+}
+
+<h1>Propietarios</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nombre</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var propietario in Model)
+        {
+            <tr>
+                <td>@propietario.Id</td>
+                <td>@propietario.Nombre</td>
+            </tr>
+        }
+    </tbody>
+</table>
