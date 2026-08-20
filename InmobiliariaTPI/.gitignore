@@ -35,6 +35,17 @@ packages/
 appsettings.Local.json
 appsettings.*.Local.json
 
+# App settings con secretos
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+
+# Archivos de base de datos locales
+*.sqlite
+*.db
+*.mdf
+*.ldf
+
 # Archivos generados por el sistema operativo
 .DS_Store
 Thumbs.db
