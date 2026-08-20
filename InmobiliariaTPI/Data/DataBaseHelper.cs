@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Configuration;
-using Microsoft.Data.SqlClient;
+using MySql.Data.MySqlClient;
 using System.Data;
 
 namespace InmobiliariaTPI.Data
@@ -13,15 +13,15 @@ namespace InmobiliariaTPI.Data
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
-        public SqlConnection GetConnection()
+        public MySqlConnection GetConnection()
         {
-            return new SqlConnection(_connectionString);
+            return new MySqlConnection(_connectionString);
         }
 
-        public async Task<int> ExecuteNonQueryAsync(string query, SqlParameter[]? parameters = null)
+        public async Task<int> ExecuteNonQueryAsync(string query, MySqlParameter[]? parameters = null)
         {
             using (var conn = GetConnection())
-            using (var cmd = new SqlCommand(query, conn))
+            using (var cmd = new MySqlCommand(query, conn))
             {
                 if (parameters != null)
                     cmd.Parameters.AddRange(parameters);
@@ -30,10 +30,10 @@ namespace InmobiliariaTPI.Data
                 return await cmd.ExecuteNonQueryAsync();
             }
         }
-        public async Task<object?> ExecuteScalarAsync(string query, SqlParameter[]? parameters = null)
+        public async Task<object?> ExecuteScalarAsync(string query, MySqlParameter[]? parameters = null)
         {
             using (var conn = GetConnection())
-            using (var cmd = new SqlCommand(query, conn))
+            using (var cmd = new MySqlCommand(query, conn))
             {
                 if (parameters != null)
                     cmd.Parameters.AddRange(parameters);
@@ -43,10 +43,10 @@ namespace InmobiliariaTPI.Data
             }
         }
 
-        public async Task<SqlDataReader> ExecuteReaderAsync(string query, SqlParameter[]? parameters = null)
+        public async Task<MySqlDataReader> ExecuteReaderAsync(string query, MySqlParameter[]? parameters = null)
         {
             var conn = GetConnection();
-            var cmd = new SqlCommand(query, conn);
+            var cmd = new MySqlCommand(query, conn);
 
             if (parameters != null)
                 cmd.Parameters.AddRange(parameters);

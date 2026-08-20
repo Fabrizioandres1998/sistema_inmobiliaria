@@ -1,0 +1,40 @@
+@model InmobiliariaTPI.Models.Inquilino
+
+@{
+    ViewData["Title"] = "Eliminar Inquilino";
+}
+
+<h1>Eliminar Inquilino</h1>
+
+<div class="alert alert-danger">
+    <h3>¿Estás seguro de eliminar este inquilino?</h3>
+</div>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.NombreCompleto)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.NombreCompleto)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Dni)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Dni)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Email)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Email)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Telefono)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Telefono)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Direccion)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Direccion)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.FechaRegistro)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.FechaRegistro)</dd>
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Eliminar" class="btn btn-danger" />
+        <a asp-action="Index" class="btn btn-secondary">Volver</a>
+    </form>
+</div>

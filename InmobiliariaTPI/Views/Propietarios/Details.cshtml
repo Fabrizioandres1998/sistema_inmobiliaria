@@ -1,0 +1,35 @@
+@model InmobiliariaTPI.Models.Propietario
+
+@{
+    ViewData["Title"] = "Detalles del Propietario";
+}
+
+<h1>Detalles del Propietario</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.NombreCompleto)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.NombreCompleto)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Dni)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Dni)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Email)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Email)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Telefono)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Telefono)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Direccion)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Direccion)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.FechaRegistro)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.FechaRegistro)</dd>
+    </dl>
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</div>
