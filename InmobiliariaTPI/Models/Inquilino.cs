@@ -1,6 +1,6 @@
 namespace InmobiliariaTPI.Models
 {
-    public class Propietario
+    public class Inquilino
     {
         public int Id { get; set; }
         public string? NombreCompleto { get; set; }
