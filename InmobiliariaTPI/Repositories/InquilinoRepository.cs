@@ -1,20 +1,24 @@
 using InmobiliariaTPI.Data;
 using InmobiliariaTPI.Models;
 using MySql.Data.MySqlClient;
+using Microsoft.Extensions.Logging;
 
 namespace InmobiliariaTPI.Repositories
 {
     public class InquilinoRepository : IInquilinoRepository
     {
         private readonly DatabaseHelper _dbHelper;
+        private readonly ILogger<InquilinoRepository> _logger;
 
-        public InquilinoRepository(DatabaseHelper dbHelper)
+        public InquilinoRepository(DatabaseHelper dbHelper, ILogger<InquilinoRepository> logger)
         {
             _dbHelper = dbHelper;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<Inquilino>> GetAllAsync()
         {
+            _logger.LogInformation("Obteniendo todos los inquilinos");
             var inquilinos = new List<Inquilino>();
             var query = "SELECT id_inquilino, nombre_completo, dni, email, telefono, direccion, fecha_registro FROM inquilino";
 
@@ -34,11 +38,13 @@ namespace InmobiliariaTPI.Repositories
                     });
                 }
             }
+            _logger.LogInformation("Se obtuvieron {Count} inquilinos", inquilinos.Count);
             return inquilinos;
         }
 
         public async Task<Inquilino?> GetByIdAsync(int id)
         {
+            _logger.LogInformation("Buscando inquilino por ID: {Id}", id);
             var query = "SELECT id_inquilino, nombre_completo, dni, email, telefono, direccion, fecha_registro FROM inquilino WHERE id_inquilino = @Id";
             var parameters = new MySqlParameter[] { new MySqlParameter("@Id", id) };
 
@@ -57,15 +63,17 @@ namespace InmobiliariaTPI.Repositories
                         FechaRegistro = reader.GetDateTime(6)
                     };
                 }
+                _logger.LogWarning("Inquilino con ID: {Id} no encontrado", id);
                 return null;
             }
         }
 
         public async Task<int> CreateAsync(Inquilino inquilino)
         {
+            _logger.LogInformation("Creando nuevo inquilino - Nombre: {Nombre}, DNI: {Dni}", inquilino.NombreCompleto, inquilino.Dni);
             var query = @"INSERT INTO inquilino (nombre_completo, dni, email, telefono, direccion, fecha_registro) 
-                          VALUES (@NombreCompleto, @Dni, @Email, @Telefono, @Direccion, @FechaRegistro);
-                          SELECT LAST_INSERT_ID();";
+                        VALUES (@NombreCompleto, @Dni, @Email, @Telefono, @Direccion, @FechaRegistro);
+                        SELECT LAST_INSERT_ID();";
 
             var parameters = new MySqlParameter[]
             {
@@ -78,18 +86,21 @@ namespace InmobiliariaTPI.Repositories
             };
 
             var result = await _dbHelper.ExecuteScalarAsync(query, parameters);
-            return result != null ? Convert.ToInt32(result) : 0;
+            var id = result != null ? Convert.ToInt32(result) : 0;
+            _logger.LogInformation("Inquilino creado con ID: {Id}", id);
+            return id;
         }
 
         public async Task UpdateAsync(Inquilino inquilino)
         {
+            _logger.LogInformation("Actualizando inquilino ID: {Id}", inquilino.Id);
             var query = @"UPDATE inquilino 
-                          SET nombre_completo = @NombreCompleto, 
-                              dni = @Dni, 
-                              email = @Email, 
-                              telefono = @Telefono, 
-                              direccion = @Direccion 
-                          WHERE id_inquilino = @Id";
+                        SET nombre_completo = @NombreCompleto, 
+                            dni = @Dni, 
+                            email = @Email, 
+                            telefono = @Telefono, 
+                            direccion = @Direccion 
+                        WHERE id_inquilino = @Id";
 
             var parameters = new MySqlParameter[]
             {
@@ -102,21 +113,26 @@ namespace InmobiliariaTPI.Repositories
             };
 
             await _dbHelper.ExecuteNonQueryAsync(query, parameters);
+            _logger.LogInformation("Inquilino ID: {Id} actualizado correctamente", inquilino.Id);
         }
 
         public async Task DeleteAsync(int id)
         {
+            _logger.LogInformation("Eliminando inquilino ID: {Id}", id);
             var query = "DELETE FROM inquilino WHERE id_inquilino = @Id";
             var parameters = new MySqlParameter[] { new MySqlParameter("@Id", id) };
             await _dbHelper.ExecuteNonQueryAsync(query, parameters);
+            _logger.LogInformation("Inquilino ID: {Id} eliminado correctamente", id);
         }
 
         public async Task<bool> ExisteDniAsync(string dni)
         {
+            _logger.LogInformation("Verificando si existe DNI: {Dni}", dni);
             var query = "SELECT COUNT(1) FROM inquilino WHERE dni = @Dni";
             var parameters = new MySqlParameter[] { new MySqlParameter("@Dni", dni) };
             var result = await _dbHelper.ExecuteScalarAsync(query, parameters);
             var count = result != null ? Convert.ToInt32(result) : 0;
+            _logger.LogInformation("DNI: {Dni} existe: {Existe}", dni, count > 0);
             return count > 0;
         }
     }
