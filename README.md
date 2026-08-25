@@ -2,6 +2,10 @@
 
 Proyecto de gestión inmobiliaria desarrollado en ASP.NET Core.
 
+## Desarrollada por
+
+D'Isidoro Fabrizio Andres
+
 ## Estructura
 
 El código fuente está en la carpeta `InmobiliariaTPI/`
@@ -9,6 +13,10 @@ El código fuente está en la carpeta `InmobiliariaTPI/`
 ## Clonar el proyecto
 
 git clone https://github.com/Fabrizioandres1998/sistema_inmobiliaria.git
+
+## Modelado de datos
+
+En docs/ se encuentra el UML llamado UML inmobiliaria.draw.io.svg y el diagrama entidad-relacion llamado DER inmobiliaria.mwb
 
 ## Base de datos
 
