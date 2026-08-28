@@ -15,7 +15,7 @@ namespace InmobiliariaTPI.Repositories
             _dbHelper = dbHelper;
             _logger = logger;
         }
-  
+
         public async Task<IEnumerable<Propietario>> GetAllAsync()
         {
             _logger.LogInformation("Obteniendo todos los propietarios");
@@ -72,8 +72,8 @@ namespace InmobiliariaTPI.Repositories
         {
             _logger.LogInformation("Creando nuevo propietario - Nombre: {Nombre}, DNI: {Dni}", propietario.NombreCompleto, propietario.Dni);
             var query = @"INSERT INTO propietario (nombre_completo, dni, email, telefono, direccion, fecha_registro) 
-                          VALUES (@NombreCompleto, @Dni, @Email, @Telefono, @Direccion, @FechaRegistro);
-                          SELECT LAST_INSERT_ID();";
+                        VALUES (@NombreCompleto, @Dni, @Email, @Telefono, @Direccion, @FechaRegistro);
+                        SELECT LAST_INSERT_ID();";
 
             var parameters = new MySqlParameter[]
             {
@@ -95,12 +95,12 @@ namespace InmobiliariaTPI.Repositories
         {
             _logger.LogInformation("Actualizando propietario ID: {Id}", propietario.Id);
             var query = @"UPDATE propietario 
-                          SET nombre_completo = @NombreCompleto, 
-                              dni = @Dni, 
-                              email = @Email, 
-                              telefono = @Telefono, 
-                              direccion = @Direccion 
-                          WHERE id_propietario = @Id";
+                        SET nombre_completo = @NombreCompleto, 
+                            dni = @Dni, 
+                            email = @Email, 
+                            telefono = @Telefono, 
+                            direccion = @Direccion 
+                        WHERE id_propietario = @Id";
 
             var parameters = new MySqlParameter[]
             {

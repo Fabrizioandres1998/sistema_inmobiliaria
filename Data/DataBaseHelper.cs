@@ -18,6 +18,7 @@ namespace InmobiliariaTPI.Data
             return new MySqlConnection(_connectionString);
         }
 
+        //INSERT, UPDATE, DELETE
         public async Task<int> ExecuteNonQueryAsync(string query, MySqlParameter[]? parameters = null)
         {
             using (var conn = GetConnection())
@@ -30,6 +31,8 @@ namespace InmobiliariaTPI.Data
                 return await cmd.ExecuteNonQueryAsync();
             }
         }
+
+        //siempre devuelve un solo valor, es para cualquier valor de una sola celda COUNT, SUM, LAST_INSERT_ID
         public async Task<object?> ExecuteScalarAsync(string query, MySqlParameter[]? parameters = null)
         {
             using (var conn = GetConnection())
@@ -43,6 +46,7 @@ namespace InmobiliariaTPI.Data
             }
         }
 
+        //SELECT para cuando quiero mostrar
         public async Task<MySqlDataReader> ExecuteReaderAsync(string query, MySqlParameter[]? parameters = null)
         {
             var conn = GetConnection();
