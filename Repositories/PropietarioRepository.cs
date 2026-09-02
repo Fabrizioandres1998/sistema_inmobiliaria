@@ -5,18 +5,15 @@ using Microsoft.Extensions.Logging;
 
 namespace InmobiliariaTPI.Repositories
 {
-    public class PropietarioRepository : IPropietarioRepository
+    public class PropietarioRepository : BaseRepository<Propietario>, IPropietarioRepository
     {
-        private readonly DatabaseHelper _dbHelper;
-        private readonly ILogger<PropietarioRepository> _logger;
 
-        public PropietarioRepository(DatabaseHelper dbHelper, ILogger<PropietarioRepository> logger)
+        public PropietarioRepository(DatabaseHelper dbHelper, ILogger<Propietario> logger) : base(dbHelper, logger)
         {
-            _dbHelper = dbHelper;
-            _logger = logger;
+
         }
 
-        public async Task<IEnumerable<Propietario>> GetAllAsync()
+        public override async Task<IEnumerable<Propietario>> GetAllAsync()
         {
             _logger.LogInformation("Obteniendo todos los propietarios");
             var propietarios = new List<Propietario>();
@@ -42,7 +39,7 @@ namespace InmobiliariaTPI.Repositories
             return propietarios;
         }
 
-        public async Task<Propietario?> GetByIdAsync(int id)
+        public override async Task<Propietario?> GetByIdAsync(int id)
         {
             _logger.LogInformation("Buscando propietario por ID: {Id}", id);
             var query = "SELECT id_propietario, nombre_completo, dni, email, telefono, direccion, fecha_registro FROM propietario WHERE id_propietario = @Id";
@@ -68,7 +65,7 @@ namespace InmobiliariaTPI.Repositories
             }
         }
 
-        public async Task<int> CreateAsync(Propietario propietario)
+        public override async Task<int> CreateAsync(Propietario propietario)
         {
             _logger.LogInformation("Creando nuevo propietario - Nombre: {Nombre}, DNI: {Dni}", propietario.NombreCompleto, propietario.Dni);
             var query = @"INSERT INTO propietario (nombre_completo, dni, email, telefono, direccion, fecha_registro) 
@@ -91,7 +88,7 @@ namespace InmobiliariaTPI.Repositories
             return id;
         }
 
-        public async Task UpdateAsync(Propietario propietario)
+        public override async Task UpdateAsync(Propietario propietario)
         {
             _logger.LogInformation("Actualizando propietario ID: {Id}", propietario.Id);
             var query = @"UPDATE propietario 
@@ -116,7 +113,7 @@ namespace InmobiliariaTPI.Repositories
             _logger.LogInformation("Propietario ID: {Id} actualizado correctamente", propietario.Id);
         }
 
-        public async Task DeleteAsync(int id)
+        public override async Task DeleteAsync(int id)
         {
             _logger.LogInformation("Eliminando propietario ID: {Id}", id);
             var query = "DELETE FROM propietario WHERE id_propietario = @Id";

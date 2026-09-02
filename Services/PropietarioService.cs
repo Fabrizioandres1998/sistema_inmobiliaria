@@ -1,69 +1,48 @@
 using InmobiliariaTPI.Models;
 using InmobiliariaTPI.Repositories;
+using Microsoft.Extensions.Logging;
 using X.PagedList;
 using X.PagedList.Extensions;
 
 namespace InmobiliariaTPI.Services
 {
-    public class PropietarioService : IPropietarioService
+    public class PropietarioService : BaseService<Propietario, IPropietarioRepository>, IPropietarioService
     {
-        private readonly IPropietarioRepository _repository;
-
-        public PropietarioService(IPropietarioRepository repository)
+        public PropietarioService(IPropietarioRepository repository, ILogger<Propietario> logger) 
+            : base(repository, logger)
         {
-            _repository = repository;
         }
 
-        public async Task<IEnumerable<Propietario>> GetAllAsync()
+        public override async Task<Propietario> CreateAsync(Propietario propietario)
         {
-            return await _repository.GetAllAsync();
-        }
+            _logger.LogInformation("Creando nuevo propietario - DNI: {Dni}", propietario.Dni);
 
-        public async Task<Propietario?> GetByIdAsync(int id)
-        {
-            return await _repository.GetByIdAsync(id);
-        }
-
-        public async Task<Propietario> CreateAsync(Propietario propietario)
-        {
             if (string.IsNullOrWhiteSpace(propietario.Dni))
                 throw new ArgumentException("El DNI es obligatorio");
 
             if (await _repository.ExisteDniAsync(propietario.Dni))
                 throw new InvalidOperationException("El DNI ya está registrado");
 
-            var id = await _repository.CreateAsync(propietario);
-            propietario.Id = id;
-            return propietario;
+            return await base.CreateAsync(propietario);
         }
 
-        public async Task UpdateAsync(Propietario propietario)
+        public override async Task UpdateAsync(Propietario propietario)
         {
+            _logger.LogInformation("Actualizando propietario ID: {Id}", propietario.Id);
+
             if (string.IsNullOrWhiteSpace(propietario.Dni))
                 throw new ArgumentException("El DNI es obligatorio");
 
-            await _repository.UpdateAsync(propietario);
+            await base.UpdateAsync(propietario);
         }
 
-        public async Task DeleteAsync(int id)
+        protected override async Task<IEnumerable<Propietario>> SearchAsync(IEnumerable<Propietario> items, string searchTerm)
         {
-            await _repository.DeleteAsync(id);
-        }
-
-        public async Task<IPagedList<Propietario>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null)
-        {
-            var propietarios = await _repository.GetAllAsync();
-
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                propietarios = propietarios.Where(p =>
-                    p.NombreCompleto!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    p.Dni!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    p.Email!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
-                ).ToList();
-            }
-
-            return propietarios.ToPagedList(pageNumber, pageSize);
+            return items.Where(p =>
+                p.NombreCompleto!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                p.Dni!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                p.Email!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+            );
         }
     }
 }

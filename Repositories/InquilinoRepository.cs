@@ -5,18 +5,14 @@ using Microsoft.Extensions.Logging;
 
 namespace InmobiliariaTPI.Repositories
 {
-    public class InquilinoRepository : IInquilinoRepository
+    public class InquilinoRepository : BaseRepository<Inquilino>, IInquilinoRepository
     {
-        private readonly DatabaseHelper _dbHelper;
-        private readonly ILogger<InquilinoRepository> _logger;
-
-        public InquilinoRepository(DatabaseHelper dbHelper, ILogger<InquilinoRepository> logger)
+        public InquilinoRepository(DatabaseHelper dbHelper, ILogger<Inquilino> logger)
+            : base(dbHelper, logger)
         {
-            _dbHelper = dbHelper;
-            _logger = logger;
         }
 
-        public async Task<IEnumerable<Inquilino>> GetAllAsync()
+        public override async Task<IEnumerable<Inquilino>> GetAllAsync()
         {
             _logger.LogInformation("Obteniendo todos los inquilinos");
             var inquilinos = new List<Inquilino>();
@@ -42,7 +38,7 @@ namespace InmobiliariaTPI.Repositories
             return inquilinos;
         }
 
-        public async Task<Inquilino?> GetByIdAsync(int id)
+        public override async Task<Inquilino?> GetByIdAsync(int id)
         {
             _logger.LogInformation("Buscando inquilino por ID: {Id}", id);
             var query = "SELECT id_inquilino, nombre_completo, dni, email, telefono, direccion, fecha_registro FROM inquilino WHERE id_inquilino = @Id";
@@ -68,7 +64,7 @@ namespace InmobiliariaTPI.Repositories
             }
         }
 
-        public async Task<int> CreateAsync(Inquilino inquilino)
+        public override async Task<int> CreateAsync(Inquilino inquilino)
         {
             _logger.LogInformation("Creando nuevo inquilino - Nombre: {Nombre}, DNI: {Dni}", inquilino.NombreCompleto, inquilino.Dni);
             var query = @"INSERT INTO inquilino (nombre_completo, dni, email, telefono, direccion, fecha_registro) 
@@ -91,7 +87,7 @@ namespace InmobiliariaTPI.Repositories
             return id;
         }
 
-        public async Task UpdateAsync(Inquilino inquilino)
+        public override async Task UpdateAsync(Inquilino inquilino)
         {
             _logger.LogInformation("Actualizando inquilino ID: {Id}", inquilino.Id);
             var query = @"UPDATE inquilino 
@@ -116,7 +112,7 @@ namespace InmobiliariaTPI.Repositories
             _logger.LogInformation("Inquilino ID: {Id} actualizado correctamente", inquilino.Id);
         }
 
-        public async Task DeleteAsync(int id)
+        public override async Task DeleteAsync(int id)
         {
             _logger.LogInformation("Eliminando inquilino ID: {Id}", id);
             var query = "DELETE FROM inquilino WHERE id_inquilino = @Id";

@@ -1,44 +1,35 @@
 using InmobiliariaTPI.Models;
 using InmobiliariaTPI.Repositories;
+using Microsoft.Extensions.Logging;
 using X.PagedList;
 using X.PagedList.Extensions;
 
 namespace InmobiliariaTPI.Services
 {
-    public class InquilinoService : IInquilinoService
+    public class InquilinoService : BaseService<Inquilino, IInquilinoRepository>, IInquilinoService
     {
-        private readonly IInquilinoRepository _repository;
-
-        public InquilinoService(IInquilinoRepository repository)
+        public InquilinoService(IInquilinoRepository repository, ILogger<Inquilino> logger)
+            : base(repository, logger)
         {
-            _repository = repository;
         }
 
-        public async Task<IEnumerable<Inquilino>> GetAllAsync()
+        public override async Task<Inquilino> CreateAsync(Inquilino inquilino)
         {
-            return await _repository.GetAllAsync();
-        }
+            _logger.LogInformation("Creando nuevo inquilino - DNI: {Dni}", inquilino.Dni);
 
-        public async Task<Inquilino?> GetByIdAsync(int id)
-        {
-            return await _repository.GetByIdAsync(id);
-        }
-
-        public async Task<Inquilino> CreateAsync(Inquilino inquilino)
-        {
             if (string.IsNullOrWhiteSpace(inquilino.Dni))
                 throw new ArgumentException("El DNI es obligatorio");
 
             if (await _repository.ExisteDniAsync(inquilino.Dni))
                 throw new InvalidOperationException("El DNI ya está registrado");
 
-            var id = await _repository.CreateAsync(inquilino);
-            inquilino.Id = id;
-            return inquilino;
+            return await base.CreateAsync(inquilino);
         }
 
-        public async Task UpdateAsync(Inquilino inquilino)
+        public override async Task UpdateAsync(Inquilino inquilino)
         {
+            _logger.LogInformation("Actualizando inquilino ID: {Id}", inquilino.Id);
+
             if (string.IsNullOrWhiteSpace(inquilino.Dni))
                 throw new ArgumentException("El DNI es obligatorio");
 
@@ -49,28 +40,16 @@ namespace InmobiliariaTPI.Services
             if (existente.Dni != inquilino.Dni && await _repository.ExisteDniAsync(inquilino.Dni))
                 throw new InvalidOperationException("El DNI ya está registrado por otro inquilino");
 
-            await _repository.UpdateAsync(inquilino);
+            await base.UpdateAsync(inquilino);
         }
 
-        public async Task DeleteAsync(int id)
+        protected override async Task<IEnumerable<Inquilino>> SearchAsync(IEnumerable<Inquilino> items, string searchTerm)
         {
-            await _repository.DeleteAsync(id);
-        }
-
-        public async Task<IPagedList<Inquilino>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null)
-        {
-            var inquilinos = await _repository.GetAllAsync();
-
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                inquilinos = inquilinos.Where(p =>
-                    p.NombreCompleto!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    p.Dni!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    p.Email!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
-                ).ToList();
-            }
-
-            return inquilinos.ToPagedList(pageNumber, pageSize);
+            return items.Where(p =>
+                p.NombreCompleto!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                p.Dni!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                p.Email!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+            );
         }
     }
 }
