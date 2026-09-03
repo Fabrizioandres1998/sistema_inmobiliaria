@@ -1,0 +1,71 @@
+@model IEnumerable<InmobiliariaTPI.Models.Reserva>
+
+@{
+    ViewData["Title"] = "Reservas";
+}
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-@(TempData["Tipo"] ?? "success") alert-dismissible fade show" role="alert">
+        @TempData["Mensaje"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<h1>Reservas</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Crear Nueva Reserva</a>
+    <a asp-action="Vigentes" class="btn btn-success">Ver Vigentes</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Inmueble</th>
+            <th>Inquilino</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Monto x Día</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(m => item.Id)</td>
+                <td>@Html.DisplayFor(m => item.IdInmueble)</td>
+                <td>@Html.DisplayFor(m => item.IdInquilino)</td>
+                <td>@item.FechaInicio.ToShortDateString()</td>
+                <td>@item.FechaFin.ToShortDateString()</td>
+                <td>@Html.DisplayFor(m => item.MontoPorDia)</td>
+                <td>
+                    @if (string.Equals(item.Estado, "Activa", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <span class="badge bg-success">Activa</span>
+                    }
+                    else if (string.Equals(item.Estado, "Finalizada", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <span class="badge bg-secondary">Finalizada</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Cancelada</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                    @if (string.Equals(item.Estado, "Activa", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <a asp-action="Finalizar" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Finalizar</a>
+                    }
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

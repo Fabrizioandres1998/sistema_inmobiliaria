@@ -6,10 +6,6 @@ Proyecto de gestión inmobiliaria desarrollado en ASP.NET Core.
 
 D'Isidoro Fabrizio Andres
 
-## Estructura
-
-El código fuente está en la carpeta `InmobiliariaTPI/`
-
 ## Clonar el proyecto
 
 git clone https://github.com/Fabrizioandres1998/sistema_inmobiliaria.git
@@ -43,7 +39,6 @@ Abrí appsettings.json y completá tu usuario y contraseña de MySQL:
 ## Cómo ejecutar
 
 ```bash
-cd InmobiliariaTPI
 dotnet restore
 dotnet run
 ```

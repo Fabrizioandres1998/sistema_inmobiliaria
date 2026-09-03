@@ -1,0 +1,86 @@
+@model InmobiliariaTPI.Models.Reserva
+
+@{
+    ViewData["Title"] = "Detalles de la Reserva";
+}
+
+<h1>Detalles de la Reserva</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">ID</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Id)</dd>
+
+        <dt class="col-sm-3">Inmueble</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.IdInmueble)</dd>
+
+        <dt class="col-sm-3">Inquilino</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.IdInquilino)</dd>
+
+        <dt class="col-sm-3">Fecha Inicio</dt>
+        <dd class="col-sm-9">@Model.FechaInicio.ToShortDateString()</dd>
+
+        <dt class="col-sm-3">Fecha Fin</dt>
+        <dd class="col-sm-9">@Model.FechaFin.ToShortDateString()</dd>
+
+        @if (Model.FechaFinOriginal.HasValue)
+        {
+            <dt class="col-sm-3">Fecha Fin Original</dt>
+            <dd class="col-sm-9">@Model.FechaFinOriginal.Value.ToShortDateString()</dd>
+        }
+
+        <dt class="col-sm-3">Monto por Día</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.MontoPorDia)</dd>
+
+        <dt class="col-sm-3">Estado</dt>
+        <dd class="col-sm-9">
+            @if (string.Equals(Model.Estado, "Activa", StringComparison.OrdinalIgnoreCase))
+            {
+                <span class="badge bg-success">Activa</span>
+            }
+            else if (string.Equals(Model.Estado, "Finalizada", StringComparison.OrdinalIgnoreCase))
+            {
+                <span class="badge bg-secondary">Finalizada</span>
+            }
+            else
+            {
+                <span class="badge bg-danger">Cancelada</span>
+            }
+        </dd>
+
+        <dt class="col-sm-3">Fecha Creación</dt>
+        <dd class="col-sm-9">@Model.FechaCreacion.ToShortDateString()</dd>
+
+        @if (Model.FechaTerminacion.HasValue)
+        {
+            <dt class="col-sm-3">Fecha Terminación</dt>
+            <dd class="col-sm-9">@Model.FechaTerminacion.Value.ToShortDateString()</dd>
+        }
+
+        @if (Model.MultaAplicada.HasValue)
+        {
+            <dt class="col-sm-3">Multa Aplicada</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(m => m.MultaAplicada)</dd>
+        }
+
+        <dt class="col-sm-3">Usuario Creador</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.IdUsuarioCreador)</dd>
+
+        @if (Model.IdUsuarioTerminacion.HasValue)
+        {
+            <dt class="col-sm-3">Usuario Terminación</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(m => m.IdUsuarioTerminacion)</dd>
+        }
+    </dl>
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+    @if (string.Equals(Model.Estado, "Activa", StringComparison.OrdinalIgnoreCase))
+    {
+        <a asp-action="Finalizar" asp-route-id="@Model.Id" class="btn btn-danger">Finalizar</a>
+        <a asp-action="Renovar" asp-route-id="@Model.Id" class="btn btn-success">Renovar</a>
+    }
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</div>

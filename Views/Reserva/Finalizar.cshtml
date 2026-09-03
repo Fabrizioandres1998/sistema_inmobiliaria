@@ -1,0 +1,46 @@
+@model InmobiliariaTPI.ViewModels.FinalizarReservaViewModel
+
+@{
+    ViewData["Title"] = "Finalizar Reserva";
+}
+
+<h1>Finalizar Reserva</h1>
+
+<div class="alert alert-warning">
+    <h4>¿Estás seguro de finalizar esta reserva?</h4>
+    <p>Se calculará la multa correspondiente según el tiempo transcurrido.</p>
+</div>
+
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Finalizar" method="post">
+            <input type="hidden" asp-for="Id" />
+
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="FechaTerminacion" class="control-label"></label>
+                <input asp-for="FechaTerminacion" class="form-control" type="date" />
+                <span asp-validation-for="FechaTerminacion" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="MultaCalculada" class="control-label"></label>
+                <input asp-for="MultaCalculada" class="form-control" readonly />
+                <span class="text-muted">La multa se calcula automáticamente</span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Finalizar" class="btn btn-danger" />
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

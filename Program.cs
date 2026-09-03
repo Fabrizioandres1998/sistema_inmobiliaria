@@ -17,13 +17,16 @@ builder.Services.AddScoped<IPropietarioRepository, PropietarioRepository>();
 builder.Services.AddScoped<IInquilinoRepository, InquilinoRepository>();
 builder.Services.AddScoped<IInmuebleRepository, InmuebleRepository>();
 builder.Services.AddScoped<ITipoInmuebleRepository, TipoInmuebleRepository>();
+builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
+// builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>(); // comentado por ahora
 
 // Services
 builder.Services.AddScoped<IPropietarioService, PropietarioService>();
 builder.Services.AddScoped<IInquilinoService, InquilinoService>();
 builder.Services.AddScoped<IInmuebleService, InmuebleService>();
 builder.Services.AddScoped<ITipoInmuebleService, TipoInmuebleService>();
-
+builder.Services.AddScoped<IReservaService, ReservaService>();
+// builder.Services.AddScoped<IUsuarioService, UsuarioService>(); // comentado por ahora
 
 var app = builder.Build();
 
