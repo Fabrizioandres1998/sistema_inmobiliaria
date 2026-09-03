@@ -15,9 +15,6 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
--- Crear la base de datos si no existe
-CREATE DATABASE IF NOT EXISTS sistema_inmobiliaria;
-USE sistema_inmobiliaria;
 --
 -- Table structure for table `inmueble`
 --
@@ -42,7 +39,7 @@ CREATE TABLE `inmueble` (
   KEY `fk_inmueble_tipo` (`id_tipo_inmueble`),
   CONSTRAINT `fk_inmueble_propietario` FOREIGN KEY (`id_propietario`) REFERENCES `propietario` (`id_propietario`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_inmueble_tipo` FOREIGN KEY (`id_tipo_inmueble`) REFERENCES `tipo_inmueble` (`id_tipo_inmueble`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -51,6 +48,7 @@ CREATE TABLE `inmueble` (
 
 LOCK TABLES `inmueble` WRITE;
 /*!40000 ALTER TABLE `inmueble` DISABLE KEYS */;
+INSERT INTO `inmueble` VALUES (1,'Las Heras 426',2,'2',200.00,NULL,1,20.00,'2026-09-02 22:54:45',1,1);
 /*!40000 ALTER TABLE `inmueble` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -138,7 +136,7 @@ CREATE TABLE `propietario` (
   `fecha_registro` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_propietario`),
   UNIQUE KEY `dni` (`dni`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -147,7 +145,7 @@ CREATE TABLE `propietario` (
 
 LOCK TABLES `propietario` WRITE;
 /*!40000 ALTER TABLE `propietario` DISABLE KEYS */;
-INSERT INTO `propietario` VALUES (1,'Fabrizio DIsidoro','41084990','fabrizioandres98@gmail.com','2657586587','Av. 25 de Mayo 546','2026-08-20 13:23:06'),(2,'Eugenia DIsidoro','40183443','eugeniab@gmail.com','2657585832','Dr. Tallaferro 350','2026-08-20 15:00:11');
+INSERT INTO `propietario` VALUES (1,'Fabrizio DIsidoro','41084990','fabrizioandres98@gmail.com','2657586587','Av. 25 de Mayo 546','2026-08-20 13:23:06'),(8,'Juan Lopez','41098494','fabrizioandres98@gmail.com','1551054','Calle 123','2026-08-28 19:43:07');
 /*!40000 ALTER TABLE `propietario` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -162,7 +160,7 @@ CREATE TABLE `reserva` (
   `id_reserva` int NOT NULL AUTO_INCREMENT,
   `fecha_inicio` date NOT NULL,
   `fecha_fin` date NOT NULL,
-  `fecha_fin_original` date NOT NULL,
+  `fecha_fin_original` date DEFAULT NULL,
   `monto_por_dia` decimal(10,2) NOT NULL,
   `estado` enum('ACTIVA','FINALIZADA','CANCELADA') DEFAULT 'ACTIVA',
   `fecha_creacion` datetime DEFAULT CURRENT_TIMESTAMP,
@@ -170,18 +168,23 @@ CREATE TABLE `reserva` (
   `multa_aplicada` decimal(10,2) DEFAULT '0.00',
   `id_inquilino` int NOT NULL,
   `id_inmueble` int NOT NULL,
-  `id_usuario_creador` int NOT NULL,
+  `id_usuario_creador` int DEFAULT NULL,
   `id_usuario_terminacion` int DEFAULT NULL,
   PRIMARY KEY (`id_reserva`),
   KEY `fk_reserva_inquilino` (`id_inquilino`),
   KEY `fk_reserva_inmueble` (`id_inmueble`),
   KEY `fk_reserva_usuario_creador` (`id_usuario_creador`),
   KEY `fk_reserva_usuario_terminacion` (`id_usuario_terminacion`),
-  CONSTRAINT `fk_reserva_inmueble` FOREIGN KEY (`id_inmueble`) REFERENCES `inmueble` (`id_inmueble`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_reserva_inquilino` FOREIGN KEY (`id_inquilino`) REFERENCES `inquilino` (`id_inquilino`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_reserva_usuario_creador` FOREIGN KEY (`id_usuario_creador`) REFERENCES `usuario` (`id_usuario`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_reserva_usuario_terminacion` FOREIGN KEY (`id_usuario_terminacion`) REFERENCES `usuario` (`id_usuario`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `id_usuario_creador_idx` (`id_usuario_creador`,`id_usuario_terminacion`),
+  KEY `idx_reserva_inquilino` (`id_inquilino`),
+  KEY `idx_reserva_inmueble` (`id_inmueble`),
+  KEY `idx_reserva_usuario_creador` (`id_usuario_creador`),
+  KEY `idx_reserva_usuario_terminacion` (`id_usuario_terminacion`),
+  CONSTRAINT `id_inmueble` FOREIGN KEY (`id_inmueble`) REFERENCES `inmueble` (`id_inmueble`),
+  CONSTRAINT `id_inquilino` FOREIGN KEY (`id_inquilino`) REFERENCES `inquilino` (`id_inquilino`),
+  CONSTRAINT `id_usuario_creador` FOREIGN KEY (`id_usuario_creador`) REFERENCES `usuario` (`id_usuario`),
+  CONSTRAINT `id_usuario_terminacion` FOREIGN KEY (`id_usuario_terminacion`) REFERENCES `usuario` (`id_usuario`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -190,6 +193,7 @@ CREATE TABLE `reserva` (
 
 LOCK TABLES `reserva` WRITE;
 /*!40000 ALTER TABLE `reserva` DISABLE KEYS */;
+INSERT INTO `reserva` VALUES (11,'2026-09-03','2026-09-17',NULL,2000.00,'ACTIVA','2026-09-03 18:51:05',NULL,0.00,1,1,1,NULL);
 /*!40000 ALTER TABLE `reserva` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -205,7 +209,7 @@ CREATE TABLE `tipo_inmueble` (
   `nombre` varchar(100) NOT NULL,
   `descripcion` text,
   PRIMARY KEY (`id_tipo_inmueble`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -214,6 +218,7 @@ CREATE TABLE `tipo_inmueble` (
 
 LOCK TABLES `tipo_inmueble` WRITE;
 /*!40000 ALTER TABLE `tipo_inmueble` DISABLE KEYS */;
+INSERT INTO `tipo_inmueble` VALUES (1,'Departamento','Unidad en edificio (piso).'),(2,'Casa','Propiedad individual con terreno.'),(3,'Monoambiente','Un solo ambiente (living/dormitorio juntos).');
 /*!40000 ALTER TABLE `tipo_inmueble` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -235,7 +240,7 @@ CREATE TABLE `usuario` (
   `fecha_ultima_modificacion` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_usuario`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -244,6 +249,7 @@ CREATE TABLE `usuario` (
 
 LOCK TABLES `usuario` WRITE;
 /*!40000 ALTER TABLE `usuario` DISABLE KEYS */;
+INSERT INTO `usuario` VALUES (1,'admin@admin.com','admin123','ADMINISTRADOR','Admin',NULL,'2026-09-03 18:33:56','2026-09-03 18:33:56');
 /*!40000 ALTER TABLE `usuario` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -256,4 +262,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-20 15:11:09
+-- Dump completed on 2026-09-03 19:39:56

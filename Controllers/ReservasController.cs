@@ -6,14 +6,14 @@ using InmobiliariaTPI.ViewModels;
 
 namespace InmobiliariaTPI.Controllers
 {
-    public class ReservaController : Controller
+    public class ReservasController : Controller
     {
         private readonly IReservaService _reservaService;
         private readonly IInmuebleService _inmuebleService;
         private readonly IInquilinoService _inquilinoService;
         // private readonly IUsuarioService _usuarioService;
 
-        public ReservaController(
+        public ReservasController(
             IReservaService reservaService,
             IInmuebleService inmuebleService,
             IInquilinoService inquilinoService
