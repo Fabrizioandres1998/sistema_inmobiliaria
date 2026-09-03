@@ -1,0 +1,70 @@
+@model IEnumerable<InmobiliariaTPI.Models.Inmueble>
+
+@{
+    ViewData["Title"] = "Inmuebles";
+}
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-@(TempData["Tipo"] ?? "success") alert-dismissible fade show" role="alert">
+        @TempData["Mensaje"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<h1>Inmuebles</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Crear Nuevo Inmueble</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Id)</th>
+            <th>@Html.DisplayNameFor(model => model.Direccion)</th>
+            <th>@Html.DisplayNameFor(model => model.CupoMaximo)</th>
+            <th>@Html.DisplayNameFor(model => model.PrecioPorDia)</th>
+            <th>@Html.DisplayNameFor(model => model.Disponible)</th>
+            <th>Propietario</th>
+            <th>Tipo</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Id)</td>
+                <td>@Html.DisplayFor(modelItem => item.Direccion)</td>
+                <td>@Html.DisplayFor(modelItem => item.CupoMaximo)</td>
+                <td>@Html.DisplayFor(modelItem => item.PrecioPorDia)</td>
+                <td>
+                    @if (item.Disponible)
+                    {
+                        <span class="badge bg-success">Disponible</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Suspendido</span>
+                    }
+                </td>
+                <td>@Html.DisplayFor(modelItem => item.IdPropietario)</td>
+                <td>@Html.DisplayFor(modelItem => item.IdTipoInmueble)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
+                    @if (item.Disponible)
+                    {
+                        <a asp-action="Suspender" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Suspender</a>
+                    }
+                    else
+                    {
+                        <a asp-action="Activar" asp-route-id="@item.Id" class="btn btn-sm btn-success">Activar</a>
+                    }
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

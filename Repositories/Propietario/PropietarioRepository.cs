@@ -122,6 +122,7 @@ namespace InmobiliariaTPI.Repositories
             _logger.LogInformation("Propietario ID: {Id} eliminado correctamente", id);
         }
 
+        // verifica si el dni ya existe
         public async Task<bool> ExisteDniAsync(string dni)
         {
             _logger.LogInformation("Verificando si existe DNI: {Dni}", dni);

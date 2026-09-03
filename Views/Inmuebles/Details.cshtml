@@ -1,0 +1,76 @@
+@model InmobiliariaTPI.Models.Inmueble
+
+@{
+    ViewData["Title"] = "Detalles del Inmueble";
+}
+
+<h1>Detalles del Inmueble</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Id)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Id)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Direccion)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Direccion)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CupoMaximo)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.CupoMaximo)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Coordenadas)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Coordenadas)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.PrecioPorDia)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.PrecioPorDia)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.ImagenPortada)</dt>
+        <dd class="col-sm-9">
+            @if (!string.IsNullOrEmpty(Model.ImagenPortada))
+            {
+                <img src="@Model.ImagenPortada" alt="Imagen" style="max-height:150px;" />
+            }
+            else
+            {
+                <span>Sin imagen</span>
+            }
+        </dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Disponible)</dt>
+        <dd class="col-sm-9">
+            @if (Model.Disponible)
+            {
+                <span class="badge bg-success">Disponible</span>
+            }
+            else
+            {
+                <span class="badge bg-danger">Suspendido</span>
+            }
+        </dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.PorcentajeReserva)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.PorcentajeReserva)%</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.FechaCreacion)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.FechaCreacion)</dd>
+
+        <dt class="col-sm-3">Propietario</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.IdPropietario)</dd>
+
+        <dt class="col-sm-3">Tipo de Inmueble</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.IdTipoInmueble)</dd>
+    </dl>
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+    @if (Model.Disponible)
+    {
+        <a asp-action="Suspender" asp-route-id="@Model.Id" class="btn btn-warning">Suspender</a>
+    }
+    else
+    {
+        <a asp-action="Activar" asp-route-id="@Model.Id" class="btn btn-success">Activar</a>
+    }
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</div>

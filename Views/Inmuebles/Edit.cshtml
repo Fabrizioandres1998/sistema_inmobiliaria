@@ -1,0 +1,84 @@
+@model InmobiliariaTPI.Models.Inmueble
+
+@{
+    ViewData["Title"] = "Editar Inmueble";
+}
+
+<h1>Editar Inmueble</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="FechaCreacion" />
+
+            <div class="form-group mb-3">
+                <label asp-for="Direccion" class="control-label"></label>
+                <input asp-for="Direccion" class="form-control" />
+                <span asp-validation-for="Direccion" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="CupoMaximo" class="control-label"></label>
+                <input asp-for="CupoMaximo" class="form-control" />
+                <span asp-validation-for="CupoMaximo" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Coordenadas" class="control-label"></label>
+                <input asp-for="Coordenadas" class="form-control" />
+                <span asp-validation-for="Coordenadas" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="PrecioPorDia" class="control-label"></label>
+                <input asp-for="PrecioPorDia" class="form-control" />
+                <span asp-validation-for="PrecioPorDia" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="ImagenPortada" class="control-label"></label>
+                <input asp-for="ImagenPortada" class="form-control" />
+                <span asp-validation-for="ImagenPortada" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="PorcentajeReserva" class="control-label"></label>
+                <input asp-for="PorcentajeReserva" class="form-control" />
+                <span asp-validation-for="PorcentajeReserva" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="IdPropietario" class="control-label">Propietario</label>
+                <select asp-for="IdPropietario" asp-items="ViewBag.Propietarios" class="form-control">
+                    <option value="">Seleccione un propietario</option>
+                </select>
+                <span asp-validation-for="IdPropietario" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="IdTipoInmueble" class="control-label">Tipo de Inmueble</label>
+                <select asp-for="IdTipoInmueble" asp-items="ViewBag.Tipos" class="form-control">
+                    <option value="">Seleccione un tipo</option>
+                </select>
+                <span asp-validation-for="IdTipoInmueble" class="text-danger"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="Disponible" class="form-check-input" />
+                <label asp-for="Disponible" class="form-check-label"></label>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Guardar" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Volver</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

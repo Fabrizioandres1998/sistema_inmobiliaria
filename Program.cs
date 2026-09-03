@@ -15,10 +15,15 @@ builder.Services.AddSingleton<DatabaseHelper>();
 // Repositories
 builder.Services.AddScoped<IPropietarioRepository, PropietarioRepository>();
 builder.Services.AddScoped<IInquilinoRepository, InquilinoRepository>();
+builder.Services.AddScoped<IInmuebleRepository, InmuebleRepository>();
+builder.Services.AddScoped<ITipoInmuebleRepository, TipoInmuebleRepository>();
 
 // Services
 builder.Services.AddScoped<IPropietarioService, PropietarioService>();
 builder.Services.AddScoped<IInquilinoService, InquilinoService>();
+builder.Services.AddScoped<IInmuebleService, InmuebleService>();
+builder.Services.AddScoped<ITipoInmuebleService, TipoInmuebleService>();
+
 
 var app = builder.Build();
 

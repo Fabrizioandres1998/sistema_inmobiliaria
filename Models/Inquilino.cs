@@ -4,6 +4,7 @@ namespace InmobiliariaTPI.Models
 {
     public class Inquilino
     {
+        [Key]
         public int Id { get; set; }
 
         [Required(ErrorMessage = "El nombre completo es obligatorio")]
