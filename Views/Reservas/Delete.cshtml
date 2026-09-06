@@ -31,11 +31,11 @@
 
         <dt class="col-sm-3">Estado</dt>
         <dd class="col-sm-9">
-            @if (Model.Estado == "Activa")
+            @if (string.Equals(Model.Estado, "Activa", StringComparison.OrdinalIgnoreCase))
             {
                 <span class="badge bg-success">Activa</span>
             }
-            else if (Model.Estado == "Finalizada")
+            else if (string.Equals(Model.Estado, "Finalizada", StringComparison.OrdinalIgnoreCase))
             {
                 <span class="badge bg-secondary">Finalizada</span>
             }
