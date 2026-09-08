@@ -51,5 +51,15 @@ namespace InmobiliariaTPI.Services
                 p.Email!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
             );
         }
+        // sobrescribo GetPagedAsync para usar paginacion en base de datos
+        public override async Task<IPagedList<Inquilino>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null)
+        {
+            _logger.LogInformation("Obteniendo página {Page} de inquilinos", pageNumber);
+
+            var items = await _repository.GetPagedAsync(pageNumber, pageSize, searchTerm);
+            var totalCount = await _repository.GetTotalCountAsync(searchTerm);
+
+            return new StaticPagedList<Inquilino>(items, pageNumber, pageSize, totalCount);
+        }
     }
 }

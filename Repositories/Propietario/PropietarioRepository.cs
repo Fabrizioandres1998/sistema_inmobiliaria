@@ -133,5 +133,92 @@ namespace InmobiliariaTPI.Repositories
             _logger.LogInformation("DNI: {Dni} existe: {Existe}", dni, count > 0);
             return count > 0;
         }
+
+        // obtiene propietario por dni
+        public async Task<Propietario?> GetByDniAsync(string dni)
+        {
+            _logger.LogInformation("Buscando propietario por DNI: {Dni}", dni);
+            var query = "SELECT id_propietario, nombre_completo, dni, email, telefono, direccion, fecha_registro FROM propietario WHERE dni = @Dni";
+            var parameters = new MySqlParameter[] { new MySqlParameter("@Dni", dni) };
+
+            using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters))
+            {
+                if (await reader.ReadAsync())
+                {
+                    return new Propietario
+                    {
+                        Id = reader.GetInt32(0),
+                        NombreCompleto = reader.GetString(1),
+                        Dni = reader.GetString(2),
+                        Email = reader.GetString(3),
+                        Telefono = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                        Direccion = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                        FechaRegistro = reader.GetDateTime(6)
+                    };
+                }
+                _logger.LogWarning("Propietario con DNI: {Dni} no encontrado", dni);
+                return null;
+            }
+        }
+
+        // obtiene propietarios paginados
+        public override async Task<IEnumerable<Propietario>> GetPagedAsync(int page, int pageSize, string? searchTerm = null)
+        {
+            _logger.LogInformation("Obteniendo propietarios paginados - Pagina: {Page}, Tamano: {PageSize}", page, pageSize);
+            
+            var propietarios = new List<Propietario>();
+            var offset = (page - 1) * pageSize;
+            
+            var query = "SELECT id_propietario, nombre_completo, dni, email, telefono, direccion, fecha_registro FROM propietario";
+            var parameters = new List<MySqlParameter>();
+            
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query += " WHERE nombre_completo LIKE @SearchTerm OR dni LIKE @SearchTerm OR email LIKE @SearchTerm";
+                parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
+            }
+            
+            query += " ORDER BY id_propietario DESC LIMIT @PageSize OFFSET @Offset";
+            parameters.Add(new MySqlParameter("@PageSize", pageSize));
+            parameters.Add(new MySqlParameter("@Offset", offset));
+            
+            using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters.ToArray()))
+            {
+                while (await reader.ReadAsync())
+                {
+                    propietarios.Add(new Propietario
+                    {
+                        Id = reader.GetInt32(0),
+                        NombreCompleto = reader.GetString(1),
+                        Dni = reader.GetString(2),
+                        Email = reader.GetString(3),
+                        Telefono = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                        Direccion = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                        FechaRegistro = reader.GetDateTime(6)
+                    });
+                }
+            }
+            
+            _logger.LogInformation("Se obtuvieron {Count} propietarios", propietarios.Count);
+            return propietarios;
+        }
+
+        // obtiene el total de propietarios para paginacion
+        public override async Task<int> GetTotalCountAsync(string? searchTerm = null)
+        {
+            _logger.LogInformation("Obteniendo total de propietarios");
+            
+            var query = "SELECT COUNT(1) FROM propietario";
+            var parameters = new List<MySqlParameter>();
+            
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query += " WHERE nombre_completo LIKE @SearchTerm OR dni LIKE @SearchTerm OR email LIKE @SearchTerm";
+                parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
+            }
+            
+            var result = await _dbHelper.ExecuteScalarAsync(query, parameters.ToArray());
+            return result != null ? Convert.ToInt32(result) : 0;
+        }
     }
 }

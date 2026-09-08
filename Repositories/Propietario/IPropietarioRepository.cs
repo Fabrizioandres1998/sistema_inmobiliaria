@@ -5,5 +5,6 @@ namespace InmobiliariaTPI.Repositories
     public interface IPropietarioRepository : IBaseRepository<Propietario>
     {
         Task<bool> ExisteDniAsync(string dni);
+        Task<Propietario?> GetByDniAsync(string dni); 
     }
 }

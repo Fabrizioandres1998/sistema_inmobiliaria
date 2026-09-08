@@ -6,6 +6,26 @@
 
 <h1>Editar Reserva</h1>
 
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-@(TempData["Tipo"] ?? "success") alert-dismissible fade show" role="alert">
+        @TempData["Mensaje"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
 <hr />
 <div class="row">
     <div class="col-md-6">
@@ -17,7 +37,7 @@
 
             <div class="form-group mb-3">
                 <label asp-for="IdInmueble" class="control-label">Inmueble</label>
-                <select asp-for="IdInmueble" asp-items="ViewBag.Inmuebles" class="form-control">
+                <select asp-for="IdInmueble" asp-items="ViewBag.Inmuebles" class="form-control" id="InmuebleSelect">
                     <option value="">Seleccione un inmueble</option>
                 </select>
                 <span asp-validation-for="IdInmueble" class="text-danger"></span>
@@ -33,19 +53,21 @@
 
             <div class="form-group mb-3">
                 <label asp-for="FechaInicio" class="control-label"></label>
-                <input asp-for="FechaInicio" class="form-control" type="date" />
+                <input asp-for="FechaInicio" class="form-control" type="date" id="FechaInicio" />
                 <span asp-validation-for="FechaInicio" class="text-danger"></span>
+                <small class="text-muted">La fecha de inicio no puede ser en el pasado</small>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="FechaFin" class="control-label"></label>
-                <input asp-for="FechaFin" class="form-control" type="date" />
+                <input asp-for="FechaFin" class="form-control" type="date" id="FechaFin" />
                 <span asp-validation-for="FechaFin" class="text-danger"></span>
+                <small class="text-muted">La fecha de fin no puede ser anterior a la actual</small>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="MontoPorDia" class="control-label"></label>
-                <input asp-for="MontoPorDia" class="form-control" />
+                <input asp-for="MontoPorDia" class="form-control" step="0.01" />
                 <span asp-validation-for="MontoPorDia" class="text-danger"></span>
             </div>
 
@@ -69,4 +91,39 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Validar que fecha fin no sea menor a fecha inicio
+            $('#FechaFin').change(function() {
+                var fechaInicio = new Date($('#FechaInicio').val());
+                var fechaFin = new Date($(this).val());
+                
+                if (fechaFin < fechaInicio) {
+                    alert('La fecha de fin no puede ser menor a la fecha de inicio');
+                    $(this).val('');
+                }
+                
+                // Validar que fecha fin no sea en el pasado
+                var hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                if (fechaFin < hoy) {
+                    alert('La fecha de fin no puede ser en el pasado');
+                    $(this).val('');
+                }
+            });
+            
+            // Validar que fecha inicio no sea en el pasado
+            $('#FechaInicio').change(function() {
+                var hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                var fechaInicio = new Date($(this).val());
+                
+                if (fechaInicio < hoy) {
+                    alert('La fecha de inicio no puede ser en el pasado');
+                    $(this).val('');
+                }
+            });
+        });
+    </script>
 }

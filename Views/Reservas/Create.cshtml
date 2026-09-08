@@ -14,7 +14,7 @@
 
             <div class="form-group mb-3">
                 <label asp-for="IdInmueble" class="control-label">Inmueble</label>
-                <select asp-for="IdInmueble" asp-items="ViewBag.Inmuebles" class="form-control">
+                <select asp-for="IdInmueble" asp-items="ViewBag.Inmuebles" class="form-control" id="InmuebleSelect">
                     <option value="">Seleccione un inmueble</option>
                 </select>
                 <span asp-validation-for="IdInmueble" class="text-danger"></span>
@@ -41,8 +41,9 @@
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="MontoPorDia" class="control-label"></label>
-                <input asp-for="MontoPorDia" class="form-control" />
+                <label asp-for="MontoPorDia" class="control-label">Precio por Día</label>
+                <input asp-for="MontoPorDia" class="form-control" id="MontoPorDia" readonly />
+                <small class="text-muted">El precio se carga automáticamente al seleccionar el inmueble</small>
                 <span asp-validation-for="MontoPorDia" class="text-danger"></span>
             </div>
 
@@ -55,5 +56,35 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            $('#InmuebleSelect').change(function () {
+                var inmuebleId = $(this).val();
+                if (inmuebleId) {
+                    $.ajax({
+                        url: '@Url.Action("GetPrecioPorDia", "Reservas")',
+                        type: 'GET',
+                        data: { inmuebleId: inmuebleId },
+                        success: function (data) {
+                            if (data.success) {
+                                $('#MontoPorDia').val(data.precio);
+                            } else {
+                                $('#MontoPorDia').val('');
+                                alert(data.message);
+                            }
+                        },
+                        error: function () {
+                            alert('Error al cargar el precio del inmueble');
+                        }
+                    });
+                } else {
+                    $('#MontoPorDia').val('');
+                }
+            });
+        });
+    </script>
 }

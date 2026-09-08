@@ -132,5 +132,65 @@ namespace InmobiliariaTPI.Repositories
             _logger.LogInformation("DNI: {Dni} existe: {Existe}", dni, count > 0);
             return count > 0;
         }
+
+        // obtiene inquilinos paginados
+        public override async Task<IEnumerable<Inquilino>> GetPagedAsync(int page, int pageSize, string? searchTerm = null)
+        {
+            _logger.LogInformation("Obteniendo inquilinos paginados - Pagina: {Page}, Tamano: {PageSize}", page, pageSize);
+            
+            var inquilinos = new List<Inquilino>();
+            var offset = (page - 1) * pageSize;
+            
+            var query = "SELECT id_inquilino, nombre_completo, dni, email, telefono, direccion, fecha_registro FROM inquilino";
+            var parameters = new List<MySqlParameter>();
+            
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query += " WHERE nombre_completo LIKE @SearchTerm OR dni LIKE @SearchTerm OR email LIKE @SearchTerm";
+                parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
+            }
+            
+            query += " ORDER BY id_inquilino DESC LIMIT @PageSize OFFSET @Offset";
+            parameters.Add(new MySqlParameter("@PageSize", pageSize));
+            parameters.Add(new MySqlParameter("@Offset", offset));
+            
+            using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters.ToArray()))
+            {
+                while (await reader.ReadAsync())
+                {
+                    inquilinos.Add(new Inquilino
+                    {
+                        Id = reader.GetInt32(0),
+                        NombreCompleto = reader.GetString(1),
+                        Dni = reader.GetString(2),
+                        Email = reader.GetString(3),
+                        Telefono = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                        Direccion = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                        FechaRegistro = reader.GetDateTime(6)
+                    });
+                }
+            }
+            
+            _logger.LogInformation("Se obtuvieron {Count} inquilinos", inquilinos.Count);
+            return inquilinos;
+        }
+
+        // obtiene el total de inquilinos para paginacion
+        public override async Task<int> GetTotalCountAsync(string? searchTerm = null)
+        {
+            _logger.LogInformation("Obteniendo total de inquilinos");
+            
+            var query = "SELECT COUNT(1) FROM inquilino";
+            var parameters = new List<MySqlParameter>();
+            
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query += " WHERE nombre_completo LIKE @SearchTerm OR dni LIKE @SearchTerm OR email LIKE @SearchTerm";
+                parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
+            }
+            
+            var result = await _dbHelper.ExecuteScalarAsync(query, parameters.ToArray());
+            return result != null ? Convert.ToInt32(result) : 0;
+        }
     }
 }

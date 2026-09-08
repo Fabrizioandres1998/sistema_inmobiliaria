@@ -14,19 +14,25 @@ namespace InmobiliariaTPI.Repositories
 
         public override async Task<IEnumerable<Reserva>> GetAllAsync()
         {
-            _logger.LogInformation("Obteniendo todas las reservas");
+            _logger.LogInformation("Obteniendo todas las reservas con datos relacionados");
             var reservas = new List<Reserva>();
-            var query = @"SELECT id_reserva, fecha_inicio, fecha_fin, fecha_fin_original, 
-                                 monto_por_dia, estado, fecha_creacion, fecha_terminacion, 
-                                 multa_aplicada, id_inquilino, id_inmueble, 
-                                 id_usuario_creador, id_usuario_terminacion 
-                          FROM reserva";
+            var query = @"SELECT r.id_reserva, r.fecha_inicio, r.fecha_fin, r.fecha_fin_original, 
+                         r.monto_por_dia, r.estado, r.fecha_creacion, r.fecha_terminacion, 
+                         r.multa_aplicada, r.id_inquilino, r.id_inmueble, 
+                         r.id_usuario_creador, r.id_usuario_terminacion,
+                         i.direccion AS InmuebleDireccion,
+                         i.id_inmueble AS InmuebleId,
+                         inq.nombre_completo AS InquilinoNombre,
+                         inq.id_inquilino AS InquilinoId
+                  FROM reserva r
+                  LEFT JOIN inmueble i ON r.id_inmueble = i.id_inmueble
+                  LEFT JOIN inquilino inq ON r.id_inquilino = inq.id_inquilino";
 
             using (var reader = await _dbHelper.ExecuteReaderAsync(query))
             {
                 while (await reader.ReadAsync())
                 {
-                    reservas.Add(new Reserva
+                    var reserva = new Reserva
                     {
                         Id = reader.GetInt32(0),
                         FechaInicio = reader.GetDateTime(1),
@@ -40,8 +46,20 @@ namespace InmobiliariaTPI.Repositories
                         IdInquilino = reader.GetInt32(9),
                         IdInmueble = reader.GetInt32(10),
                         IdUsuarioCreador = reader.GetInt32(11),
-                        IdUsuarioTerminacion = reader.IsDBNull(12) ? (int?)null : reader.GetInt32(12)
-                    });
+                        IdUsuarioTerminacion = reader.IsDBNull(12) ? (int?)null : reader.GetInt32(12),
+                        // Cargar datos relacionados
+                        Inmueble = new Inmueble
+                        {
+                            Id = reader.GetInt32(14),
+                            Direccion = reader.GetString(13)
+                        },
+                        Inquilino = new Inquilino
+                        {
+                            Id = reader.GetInt32(16),
+                            NombreCompleto = reader.GetString(15)
+                        }
+                    };
+                    reservas.Add(reserva);
                 }
             }
             _logger.LogInformation("Se obtuvieron {Count} reservas", reservas.Count);
@@ -51,11 +69,16 @@ namespace InmobiliariaTPI.Repositories
         public override async Task<Reserva?> GetByIdAsync(int id)
         {
             _logger.LogInformation("Buscando reserva por ID: {Id}", id);
-            var query = @"SELECT id_reserva, fecha_inicio, fecha_fin, fecha_fin_original, 
-                                 monto_por_dia, estado, fecha_creacion, fecha_terminacion, 
-                                 multa_aplicada, id_inquilino, id_inmueble, 
-                                 id_usuario_creador, id_usuario_terminacion 
-                          FROM reserva WHERE id_reserva = @Id";
+            var query = @"SELECT r.id_reserva, r.fecha_inicio, r.fecha_fin, r.fecha_fin_original, 
+                         r.monto_por_dia, r.estado, r.fecha_creacion, r.fecha_terminacion, 
+                         r.multa_aplicada, r.id_inquilino, r.id_inmueble, 
+                         r.id_usuario_creador, r.id_usuario_terminacion,
+                         i.direccion AS InmuebleDireccion,
+                         inq.nombre_completo AS InquilinoNombre
+                  FROM reserva r
+                  LEFT JOIN inmueble i ON r.id_inmueble = i.id_inmueble
+                  LEFT JOIN inquilino inq ON r.id_inquilino = inq.id_inquilino
+                  WHERE r.id_reserva = @Id";
             var parameters = new MySqlParameter[] { new MySqlParameter("@Id", id) };
 
             using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters))
@@ -76,7 +99,18 @@ namespace InmobiliariaTPI.Repositories
                         IdInquilino = reader.GetInt32(9),
                         IdInmueble = reader.GetInt32(10),
                         IdUsuarioCreador = reader.GetInt32(11),
-                        IdUsuarioTerminacion = reader.IsDBNull(12) ? (int?)null : reader.GetInt32(12)
+                        IdUsuarioTerminacion = reader.IsDBNull(12) ? (int?)null : reader.GetInt32(12),
+                        // Cargar datos relacionados
+                        Inmueble = new Inmueble
+                        {
+                            Id = reader.GetInt32(10),
+                            Direccion = reader.GetString(13)
+                        },
+                        Inquilino = new Inquilino
+                        {
+                            Id = reader.GetInt32(9),
+                            NombreCompleto = reader.GetString(14)
+                        }
                     };
                 }
                 _logger.LogWarning("Reserva con ID: {Id} no encontrada", id);
@@ -341,7 +375,7 @@ namespace InmobiliariaTPI.Repositories
         {
             _logger.LogInformation("Finalizando reserva {Id} con multa de {Multa}", id, multa);
             var query = @"UPDATE reserva 
-                        SET estado = 'Finalizada', 
+                        SET estado = 'FINALIZADA', 
                             fecha_terminacion = @FechaTerminacion, 
                             multa_aplicada = @Multa,
                             id_usuario_terminacion = @IdUsuarioTerminacion 
@@ -367,5 +401,110 @@ namespace InmobiliariaTPI.Repositories
             nuevaReserva.Id = id;
             return nuevaReserva;
         }
+
+        // obtiene reservas paginadas
+        public override async Task<IEnumerable<Reserva>> GetPagedAsync(int page, int pageSize, string? searchTerm = null)
+        {
+            _logger.LogInformation("Obteniendo reservas paginadas - Pagina: {Page}, Tamano: {PageSize}", page, pageSize);
+
+            var reservas = new List<Reserva>();
+            var offset = (page - 1) * pageSize;
+
+            var query = @"SELECT id_reserva, fecha_inicio, fecha_fin, fecha_fin_original, 
+                                 monto_por_dia, estado, fecha_creacion, fecha_terminacion, 
+                                 multa_aplicada, id_inquilino, id_inmueble, 
+                                 id_usuario_creador, id_usuario_terminacion 
+                          FROM reserva";
+            var parameters = new List<MySqlParameter>();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query += " WHERE estado LIKE @SearchTerm OR id_inquilino IN (SELECT id_inquilino FROM inquilino WHERE nombre_completo LIKE @SearchTerm)";
+                parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
+            }
+
+            query += " ORDER BY id_reserva DESC LIMIT @PageSize OFFSET @Offset";
+            parameters.Add(new MySqlParameter("@PageSize", pageSize));
+            parameters.Add(new MySqlParameter("@Offset", offset));
+
+            using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters.ToArray()))
+            {
+                while (await reader.ReadAsync())
+                {
+                    reservas.Add(new Reserva
+                    {
+                        Id = reader.GetInt32(0),
+                        FechaInicio = reader.GetDateTime(1),
+                        FechaFin = reader.GetDateTime(2),
+                        FechaFinOriginal = reader.IsDBNull(3) ? (DateTime?)null : reader.GetDateTime(3),
+                        MontoPorDia = reader.GetDecimal(4),
+                        Estado = reader.GetString(5),
+                        FechaCreacion = reader.GetDateTime(6),
+                        FechaTerminacion = reader.IsDBNull(7) ? (DateTime?)null : reader.GetDateTime(7),
+                        MultaAplicada = reader.IsDBNull(8) ? (decimal?)null : reader.GetDecimal(8),
+                        IdInquilino = reader.GetInt32(9),
+                        IdInmueble = reader.GetInt32(10),
+                        IdUsuarioCreador = reader.GetInt32(11),
+                        IdUsuarioTerminacion = reader.IsDBNull(12) ? (int?)null : reader.GetInt32(12)
+                    });
+                }
+            }
+
+            _logger.LogInformation("Se obtuvieron {Count} reservas", reservas.Count);
+            return reservas;
+        }
+
+        // obtiene el total de reservas para paginacion
+        public override async Task<int> GetTotalCountAsync(string? searchTerm = null)
+        {
+            _logger.LogInformation("Obteniendo total de reservas");
+
+            var query = "SELECT COUNT(1) FROM reserva";
+            var parameters = new List<MySqlParameter>();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query += " WHERE estado LIKE @SearchTerm OR id_inquilino IN (SELECT id_inquilino FROM inquilino WHERE nombre_completo LIKE @SearchTerm)";
+                parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
+            }
+
+            var result = await _dbHelper.ExecuteScalarAsync(query, parameters.ToArray());
+            return result != null ? Convert.ToInt32(result) : 0;
+        }
+
+        // verifica disponibilidad en fechas para una reserva
+        public async Task<bool> EstaOcupadoAsync(int inmuebleId, DateTime inicio, DateTime fin, int? reservaExcluirId = null)
+        {
+            _logger.LogInformation("Verificando disponibilidad del inmueble {InmuebleId} entre {Inicio} y {Fin}",
+                inmuebleId, inicio, fin);
+
+            var query = @"SELECT COUNT(1) FROM reserva 
+                  WHERE id_inmueble = @Id 
+                  AND estado = 'Activa'
+                  AND fecha_inicio < @Fin 
+                  AND fecha_fin > @Inicio";
+
+            var parameters = new List<MySqlParameter>
+    {
+        new MySqlParameter("@Id", inmuebleId),
+        new MySqlParameter("@Inicio", inicio),
+        new MySqlParameter("@Fin", fin)
+    };
+
+            // Excluir la misma reserva si se está editando
+            if (reservaExcluirId.HasValue)
+            {
+                query += " AND id_reserva != @ReservaExcluirId";
+                parameters.Add(new MySqlParameter("@ReservaExcluirId", reservaExcluirId.Value));
+            }
+
+            var result = await _dbHelper.ExecuteScalarAsync(query, parameters.ToArray());
+            var count = result != null ? Convert.ToInt32(result) : 0;
+            var ocupado = count > 0;
+
+            _logger.LogInformation("Inmueble {InmuebleId} ocupado: {Ocupado}", inmuebleId, ocupado);
+            return ocupado;
+        }
     }
+
 }

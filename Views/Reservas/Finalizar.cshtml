@@ -6,6 +6,26 @@
 
 <h1>Finalizar Reserva</h1>
 
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-@(TempData["Tipo"] ?? "success") alert-dismissible fade show" role="alert">
+        @TempData["Mensaje"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
 <div class="alert alert-warning">
     <h4>¿Estás seguro de finalizar esta reserva?</h4>
     <p>Se calculará la multa correspondiente según el tiempo transcurrido.</p>
@@ -14,7 +34,8 @@
 <hr />
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="Finalizar" method="post">
+        <form asp-action="Finalizar" asp-route-id="@Model.Id" method="post" novalidate>
+            @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
 
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -27,12 +48,14 @@
 
             <div class="form-group mb-3">
                 <label asp-for="MultaCalculada" class="control-label"></label>
-                <input asp-for="MultaCalculada" class="form-control" readonly />
+                @* La multa se informa al usuario, pero no se envía: al usar coma
+                   decimal, la validación de jQuery impedía el submit del formulario. *@
+                <input class="form-control" value="@Model.MultaCalculada.ToString("N2")" readonly />
                 <span class="text-muted">La multa se calcula automáticamente</span>
             </div>
 
             <div class="form-group">
-                <input type="submit" value="Finalizar" class="btn btn-danger" />
+                <button type="submit" class="btn btn-danger">Finalizar</button>
                 <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>

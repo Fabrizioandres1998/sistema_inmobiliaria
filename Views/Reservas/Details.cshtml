@@ -13,10 +13,10 @@
         <dd class="col-sm-9">@Html.DisplayFor(m => m.Id)</dd>
 
         <dt class="col-sm-3">Inmueble</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.IdInmueble)</dd>
+        <dd class="col-sm-9">@Model.Inmueble?.Direccion</dd>
 
         <dt class="col-sm-3">Inquilino</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.IdInquilino)</dd>
+        <dd class="col-sm-9">@Model.Inquilino?.NombreCompleto</dd>
 
         <dt class="col-sm-3">Fecha Inicio</dt>
         <dd class="col-sm-9">@Model.FechaInicio.ToShortDateString()</dd>

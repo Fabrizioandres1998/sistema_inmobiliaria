@@ -1,5 +1,4 @@
 using InmobiliariaTPI.Models;
-using X.PagedList;
 
 namespace InmobiliariaTPI.Services
 {

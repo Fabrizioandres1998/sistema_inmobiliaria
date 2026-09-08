@@ -33,5 +33,15 @@ namespace InmobiliariaTPI.Repositories
         {
             throw new NotImplementedException("Este método debe ser sobrescrito en el repositorio concreto");
         }
+
+        public virtual async Task<IEnumerable<T>> GetPagedAsync(int page, int pageSize, string? searchTerm = null)
+        {
+            throw new NotImplementedException("Este método debe ser sobrescrito en el repositorio concreto");
+        }
+
+        public virtual async Task<int> GetTotalCountAsync(string? searchTerm = null)
+        {
+            throw new NotImplementedException("Este método debe ser sobrescrito en el repositorio concreto");
+        }
     }
 }

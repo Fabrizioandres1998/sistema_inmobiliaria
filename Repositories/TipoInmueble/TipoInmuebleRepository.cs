@@ -102,5 +102,61 @@ namespace InmobiliariaTPI.Repositories
             await _dbHelper.ExecuteNonQueryAsync(query, parameters);
             _logger.LogInformation("Tipo de inmueble ID: {Id} eliminado correctamente", id);
         }
+
+        // obtiene tipos de inmueble paginados
+        public override async Task<IEnumerable<TipoInmueble>> GetPagedAsync(int page, int pageSize, string? searchTerm = null)
+        {
+            _logger.LogInformation("Obteniendo tipos de inmueble paginados - Pagina: {Page}, Tamano: {PageSize}", page, pageSize);
+            
+            var tipos = new List<TipoInmueble>();
+            var offset = (page - 1) * pageSize;
+            
+            var query = "SELECT id_tipo_inmueble, nombre, descripcion FROM tipo_inmueble";
+            var parameters = new List<MySqlParameter>();
+            
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query += " WHERE nombre LIKE @SearchTerm OR descripcion LIKE @SearchTerm";
+                parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
+            }
+            
+            query += " ORDER BY id_tipo_inmueble DESC LIMIT @PageSize OFFSET @Offset";
+            parameters.Add(new MySqlParameter("@PageSize", pageSize));
+            parameters.Add(new MySqlParameter("@Offset", offset));
+            
+            using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters.ToArray()))
+            {
+                while (await reader.ReadAsync())
+                {
+                    tipos.Add(new TipoInmueble
+                    {
+                        Id = reader.GetInt32(0),
+                        Nombre = reader.GetString(1),
+                        Descripcion = reader.IsDBNull(2) ? string.Empty : reader.GetString(2)
+                    });
+                }
+            }
+            
+            _logger.LogInformation("Se obtuvieron {Count} tipos de inmueble", tipos.Count);
+            return tipos;
+        }
+
+        // obtiene el total de tipos de inmueble para paginacion
+        public override async Task<int> GetTotalCountAsync(string? searchTerm = null)
+        {
+            _logger.LogInformation("Obteniendo total de tipos de inmueble");
+            
+            var query = "SELECT COUNT(1) FROM tipo_inmueble";
+            var parameters = new List<MySqlParameter>();
+            
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query += " WHERE nombre LIKE @SearchTerm OR descripcion LIKE @SearchTerm";
+                parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
+            }
+            
+            var result = await _dbHelper.ExecuteScalarAsync(query, parameters.ToArray());
+            return result != null ? Convert.ToInt32(result) : 0;
+        }
     }
 }

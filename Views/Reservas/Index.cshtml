@@ -37,8 +37,8 @@
         {
             <tr>
                 <td>@Html.DisplayFor(m => item.Id)</td>
-                <td>@Html.DisplayFor(m => item.IdInmueble)</td>
-                <td>@Html.DisplayFor(m => item.IdInquilino)</td>
+                <td>@item.Inmueble?.Direccion</td>
+                <td>@item.Inquilino?.NombreCompleto</td>
                 <td>@item.FechaInicio.ToShortDateString()</td>
                 <td>@item.FechaFin.ToShortDateString()</td>
                 <td>@Html.DisplayFor(m => item.MontoPorDia)</td>

@@ -2,155 +2,186 @@ using InmobiliariaTPI.Models;
 using InmobiliariaTPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using X.PagedList;
 
 namespace InmobiliariaTPI.Controllers
 {
-    public class InmueblesController : Controller
+    public class InmueblesController : BaseController
     {
         private readonly IInmuebleService _inmuebleService;
         private readonly IPropietarioService _propietarioService;
         private readonly ITipoInmuebleService _tipoInmuebleService;
 
-        public InmueblesController(IInmuebleService inmuebleService,
-                                IPropietarioService propietarioService,
-                                ITipoInmuebleService tipoInmuebleService)
+        public InmueblesController(
+            IInmuebleService inmuebleService,
+            IPropietarioService propietarioService,
+            ITipoInmuebleService tipoInmuebleService,
+            ILogger<InmueblesController> logger) : base(logger)
         {
             _inmuebleService = inmuebleService;
             _propietarioService = propietarioService;
             _tipoInmuebleService = tipoInmuebleService;
         }
 
-        // GET: Inmueble
         public async Task<IActionResult> Index(int page = 1, int pageSize = 10, string? searchTerm = null)
         {
+            _logger.LogInformation("Obteniendo lista de inmuebles - Página: {Page}, Búsqueda: {SearchTerm}", page, searchTerm ?? "ninguna");
             ViewBag.SearchTerm = searchTerm;
             var inmuebles = await _inmuebleService.GetPagedAsync(page, pageSize, searchTerm);
             return View(inmuebles);
         }
 
-        // GET: Inmueble/Details/5
         public async Task<IActionResult> Details(int id)
         {
+            _logger.LogInformation("Obteniendo detalle del inmueble ID: {Id}", id);
             var inmueble = await _inmuebleService.GetByIdAsync(id);
             if (inmueble == null)
+            {
+                _logger.LogWarning("Inmueble ID: {Id} no encontrado", id);
                 return NotFound();
+            }
             return View(inmueble);
         }
 
-        // GET: Inmueble/Create
         public async Task<IActionResult> Create()
         {
+            _logger.LogInformation("Mostrando formulario de creación de inmueble");
             await CargarDropDowns();
             return View();
         }
 
-        // POST: Inmueble/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Inmueble inmueble)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    await _inmuebleService.CreateAsync(inmueble);
-                    TempData["Mensaje"] = "Inmueble creado correctamente";
-                    TempData["Tipo"] = "success";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (InvalidOperationException ex)
-                {
-                    ModelState.AddModelError("", ex.Message);
-                }
+                _logger.LogWarning("ModelState inválido al crear inmueble");
+                await CargarDropDowns();
+                return View(inmueble);
+            }
+
+            try
+            {
+                _logger.LogInformation("Creando nuevo inmueble - Dirección: {Direccion}", inmueble.Direccion);
+                await _inmuebleService.CreateAsync(inmueble);
+                SetSuccessMessage("Inmueble creado correctamente");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                AddModelErrors(ex);
+                await CargarDropDowns();
+                return View(inmueble);
+            }
+        }
+
+        public async Task<IActionResult> Edit(int id)
+        {
+            _logger.LogInformation("Mostrando formulario de edición para inmueble ID: {Id}", id);
+            var inmueble = await _inmuebleService.GetByIdAsync(id);
+            if (inmueble == null)
+            {
+                _logger.LogWarning("Inmueble ID: {Id} no encontrado para editar", id);
+                return NotFound();
             }
             await CargarDropDowns();
             return View(inmueble);
         }
 
-        // GET: Inmueble/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var inmueble = await _inmuebleService.GetByIdAsync(id);
-            if (inmueble == null)
-                return NotFound();
-            await CargarDropDowns();
-            return View(inmueble);
-        }
-
-        // POST: Inmueble/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Inmueble inmueble)
         {
             if (id != inmueble.Id)
-                return NotFound();
-
-            if (ModelState.IsValid)
             {
-                try
-                {
-                    await _inmuebleService.UpdateAsync(inmueble);
-                    TempData["Mensaje"] = "Inmueble actualizado correctamente";
-                    TempData["Tipo"] = "success";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (InvalidOperationException ex)
-                {
-                    ModelState.AddModelError("", ex.Message);
-                }
+                _logger.LogWarning("ID de ruta: {Id} no coincide con ID del modelo: {ModelId}", id, inmueble.Id);
+                return NotFound();
             }
-            await CargarDropDowns();
-            return View(inmueble);
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("ModelState inválido al editar inmueble ID: {Id}", id);
+                await CargarDropDowns();
+                return View(inmueble);
+            }
+
+            try
+            {
+                _logger.LogInformation("Actualizando inmueble ID: {Id} - Dirección: {Direccion}", id, inmueble.Direccion);
+                await _inmuebleService.UpdateAsync(inmueble);
+                SetSuccessMessage("Inmueble actualizado correctamente");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                AddModelErrors(ex);
+                await CargarDropDowns();
+                return View(inmueble);
+            }
         }
 
-        // GET: Inmueble/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
+            _logger.LogInformation("Mostrando confirmación de eliminación para inmueble ID: {Id}", id);
             var inmueble = await _inmuebleService.GetByIdAsync(id);
             if (inmueble == null)
+            {
+                _logger.LogWarning("Inmueble ID: {Id} no encontrado para eliminar", id);
                 return NotFound();
+            }
             return View(inmueble);
         }
 
-        // POST: Inmueble/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try
             {
+                _logger.LogInformation("Eliminando inmueble ID: {Id}", id);
                 await _inmuebleService.DeleteAsync(id);
-                TempData["Mensaje"] = "Inmueble eliminado correctamente";
-                TempData["Tipo"] = "success";
+                SetSuccessMessage("Inmueble eliminado correctamente");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                TempData["Mensaje"] = "No se puede eliminar el inmueble porque tiene reservas asociadas";
-                TempData["Tipo"] = "danger";
+                _logger.LogError(ex, "Error al eliminar inmueble ID: {Id}", id);
+                SetErrorMessage("No se puede eliminar el inmueble porque tiene reservas asociadas");
             }
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Inmueble/Suspender/5
         public async Task<IActionResult> Suspender(int id)
         {
-            await _inmuebleService.SuspenderAsync(id);
-            TempData["Mensaje"] = "Inmueble suspendido correctamente";
-            TempData["Tipo"] = "warning";
+            try
+            {
+                _logger.LogInformation("Suspendiendo inmueble ID: {Id}", id);
+                await _inmuebleService.SuspenderAsync(id);
+                SetWarningMessage("Inmueble suspendido correctamente");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al suspender inmueble ID: {Id}", id);
+                SetErrorMessage("No se puede suspender el inmueble");
+            }
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Inmueble/Activar/5
         public async Task<IActionResult> Activar(int id)
         {
-            await _inmuebleService.ActivarAsync(id);
-            TempData["Mensaje"] = "Inmueble activado correctamente";
-            TempData["Tipo"] = "success";
+            try
+            {
+                _logger.LogInformation("Activando inmueble ID: {Id}", id);
+                await _inmuebleService.ActivarAsync(id);
+                SetSuccessMessage("Inmueble activado correctamente");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al activar inmueble ID: {Id}", id);
+                SetErrorMessage("No se puede activar el inmueble");
+            }
             return RedirectToAction(nameof(Index));
         }
 
-        // metodo privado para cargar los dropdowns
         private async Task CargarDropDowns()
         {
             var propietarios = await _propietarioService.GetAllAsync();

@@ -52,14 +52,11 @@ namespace InmobiliariaTPI.Services
         public virtual async Task<IPagedList<TEntity>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null)
         {
             _logger.LogInformation("Obteniendo página {Page} de {Entity}", pageNumber, typeof(TEntity).Name);
-            var items = await _repository.GetAllAsync();
 
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                items = await SearchAsync(items, searchTerm);
-            }
+            var items = await _repository.GetPagedAsync(pageNumber, pageSize, searchTerm);
+            var totalCount = await _repository.GetTotalCountAsync(searchTerm);
 
-            return items.ToPagedList(pageNumber, pageSize);
+            return new StaticPagedList<TEntity>(items, pageNumber, pageSize, totalCount);
         }
 
         protected abstract Task<IEnumerable<TEntity>> SearchAsync(IEnumerable<TEntity> items, string searchTerm);

@@ -155,6 +155,75 @@ namespace InmobiliariaTPI.Repositories
             _logger.LogInformation("Inmueble ID: {Id} eliminado correctamente", id);
         }
 
+        // obtiene inmuebles paginados
+        public override async Task<IEnumerable<Inmueble>> GetPagedAsync(int page, int pageSize, string? searchTerm = null)
+        {
+            _logger.LogInformation("Obteniendo inmuebles paginados - Pagina: {Page}, Tamano: {PageSize}", page, pageSize);
+            
+            var inmuebles = new List<Inmueble>();
+            var offset = (page - 1) * pageSize;
+            
+            var query = @"SELECT id_inmueble, direccion, cupo_maximo, coordenadas, 
+                                 precio_por_dia, imagen_portada, disponible, 
+                                 porcentaje_reserva, fecha_creacion, 
+                                 id_propietario, id_tipo_inmueble 
+                          FROM inmueble";
+            
+            var parameters = new List<MySqlParameter>();
+            
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query += " WHERE direccion LIKE @SearchTerm OR coordenadas LIKE @SearchTerm";
+                parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
+            }
+            
+            query += " ORDER BY id_inmueble DESC LIMIT @PageSize OFFSET @Offset";
+            parameters.Add(new MySqlParameter("@PageSize", pageSize));
+            parameters.Add(new MySqlParameter("@Offset", offset));
+            
+            using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters.ToArray()))
+            {
+                while (await reader.ReadAsync())
+                {
+                    inmuebles.Add(new Inmueble
+                    {
+                        Id = reader.GetInt32(0),
+                        Direccion = reader.GetString(1),
+                        CupoMaximo = reader.GetInt32(2),
+                        Coordenadas = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                        PrecioPorDia = reader.GetDecimal(4),
+                        ImagenPortada = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                        Disponible = reader.GetBoolean(6),
+                        PorcentajeReserva = reader.GetInt32(7),
+                        FechaCreacion = reader.GetDateTime(8),
+                        IdPropietario = reader.GetInt32(9),
+                        IdTipoInmueble = reader.GetInt32(10)
+                    });
+                }
+            }
+            
+            _logger.LogInformation("Se obtuvieron {Count} inmuebles", inmuebles.Count);
+            return inmuebles;
+        }
+
+        // obtiene el total de inmuebles para paginacion
+        public override async Task<int> GetTotalCountAsync(string? searchTerm = null)
+        {
+            _logger.LogInformation("Obteniendo total de inmuebles");
+            
+            var query = "SELECT COUNT(1) FROM inmueble";
+            var parameters = new List<MySqlParameter>();
+            
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query += " WHERE direccion LIKE @SearchTerm OR coordenadas LIKE @SearchTerm";
+                parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
+            }
+            
+            var result = await _dbHelper.ExecuteScalarAsync(query, parameters.ToArray());
+            return result != null ? Convert.ToInt32(result) : 0;
+        }
+
         // obtiene inmuebles de un propietario
         public async Task<IEnumerable<Inmueble>> GetByPropietarioIdAsync(int propietarioId)
         {

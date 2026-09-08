@@ -1,6 +1,7 @@
 using InmobiliariaTPI.Models;
 using InmobiliariaTPI.Repositories;
 using Microsoft.Extensions.Logging;
+using X.PagedList;
 
 namespace InmobiliariaTPI.Services
 {
@@ -111,5 +112,16 @@ namespace InmobiliariaTPI.Services
 
             await base.UpdateAsync(inmueble);
         }
+        // sobrescribo GetPagedAsync para usar paginacion en base de datos
+        public override async Task<IPagedList<Inmueble>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null)
+        {
+            _logger.LogInformation("Obteniendo página {Page} de inmuebles", pageNumber);
+
+            var items = await _repository.GetPagedAsync(pageNumber, pageSize, searchTerm);
+            var totalCount = await _repository.GetTotalCountAsync(searchTerm);
+
+            return new StaticPagedList<Inmueble>(items, pageNumber, pageSize, totalCount);
+        }
     }
+
 }
