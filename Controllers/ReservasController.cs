@@ -13,20 +13,23 @@ namespace InmobiliariaTPI.Controllers
         private readonly IReservaService _reservaService;
         private readonly IInmuebleService _inmuebleService;
         private readonly IInquilinoService _inquilinoService;
-        // private readonly IUsuarioService _usuarioService;
+        private readonly IUsuarioService _usuarioService;
+        private readonly IPagoService _pagoService; 
 
         public ReservasController(
             IReservaService reservaService,
             IInmuebleService inmuebleService,
             IInquilinoService inquilinoService,
-            ILogger<ReservasController> logger
-            // IUsuarioService usuarioService
+            IPagoService pagoService, 
+            ILogger<ReservasController> logger,
+            IUsuarioService usuarioService
             ) : base(logger)
         {
             _reservaService = reservaService;
             _inmuebleService = inmuebleService;
             _inquilinoService = inquilinoService;
-            // _usuarioService = usuarioService;
+            _pagoService = pagoService; 
+            _usuarioService = usuarioService;
         }
 
         // GET: Reserva
@@ -47,6 +50,11 @@ namespace InmobiliariaTPI.Controllers
                 _logger.LogWarning("Reserva ID: {Id} no encontrada", id);
                 return NotFound();
             }
+
+            // Obtener pagos de la reserva
+            var pagos = await _pagoService.GetByReservaIdAsync(id);
+            ViewBag.Pagos = pagos;
+
             return View(reserva);
         }
 
@@ -180,6 +188,7 @@ namespace InmobiliariaTPI.Controllers
         }
 
         // GET: Reserva/Delete/5
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
             _logger.LogInformation("Mostrando confirmación de eliminación para reserva ID: {Id}", id);
@@ -192,6 +201,7 @@ namespace InmobiliariaTPI.Controllers
             return View(reserva);
         }
 
+        [Authorize(Roles = "Administrador")]
         // POST: Reserva/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]

@@ -66,7 +66,10 @@
                     {
                         <a asp-action="Finalizar" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Finalizar</a>
                     }
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                    @if (User.IsInRole("Administrador"))
+                    {
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                    }
                 </td>
             </tr>
         }

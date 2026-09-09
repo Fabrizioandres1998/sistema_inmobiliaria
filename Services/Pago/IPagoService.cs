@@ -1,8 +1,8 @@
 using InmobiliariaTPI.Models;
 
-namespace InmobiliariaTPI.Repositories
+namespace InmobiliariaTPI.Services
 {
-    public interface IPagoRepository : IBaseRepository<Pago>
+    public interface IPagoService : IBaseService<Pago>
     {
         Task<IEnumerable<Pago>> GetByReservaIdAsync(int reservaId);
         Task<IEnumerable<Pago>> GetActivosByReservaIdAsync(int reservaId);

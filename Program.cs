@@ -36,6 +36,7 @@ builder.Services.AddScoped<IInmuebleRepository, InmuebleRepository>();
 builder.Services.AddScoped<ITipoInmuebleRepository, TipoInmuebleRepository>();
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IPagoRepository, PagoRepository>();
 
 // Services
 builder.Services.AddScoped<IPropietarioService, PropietarioService>();
@@ -44,6 +45,7 @@ builder.Services.AddScoped<IInmuebleService, InmuebleService>();
 builder.Services.AddScoped<ITipoInmuebleService, TipoInmuebleService>();
 builder.Services.AddScoped<IReservaService, ReservaService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IPagoService, PagoService>();
 
 var app = builder.Build();
 

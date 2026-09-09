@@ -106,6 +106,7 @@ namespace InmobiliariaTPI.Controllers
             }
         }
 
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
             _logger.LogInformation("Mostrando confirmación de eliminación para propietario ID: {Id}", id);
@@ -118,6 +119,7 @@ namespace InmobiliariaTPI.Controllers
             return View(propietario);
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

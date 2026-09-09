@@ -1,0 +1,63 @@
+@model IEnumerable<InmobiliariaTPI.Models.Pago>
+
+@{
+    ViewData["Title"] = "Pagos";
+}
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-@(TempData["Tipo"] ?? "success") alert-dismissible fade show" role="alert">
+        @TempData["Mensaje"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<h1>Pagos</h1>
+
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Id)</th>
+            <th>@Html.DisplayNameFor(model => model.Concepto)</th>
+            <th>@Html.DisplayNameFor(model => model.FechaPago)</th>
+            <th>@Html.DisplayNameFor(model => model.Importe)</th>
+            <th>@Html.DisplayNameFor(model => model.Estado)</th>
+            <th>Reserva</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Id)</td>
+                <td>@Html.DisplayFor(modelItem => item.Concepto)</td>
+                <td>@item.FechaPago.ToShortDateString()</td>
+                <td>@item.Importe.ToString("N2")</td>
+                <td>
+                    @if (item.Estado == 1)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Anulado</span>
+                    }
+                </td>
+                <td>@Html.DisplayFor(modelItem => item.IdReserva)</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
+                    @if (item.Estado == 1)
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <a asp-action="Anular" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Anular</a>
+                        }
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

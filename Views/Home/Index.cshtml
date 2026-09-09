@@ -56,4 +56,27 @@
             </div>
         </div>
     </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-secondary mb-3">
+            <div class="card-header">Pagos</div>
+            <div class="card-body">
+                <h5 class="card-title">Ir a Pagos</h5>
+                <a asp-controller="Pagos" asp-action="Index" class="btn btn-light">Ver</a>
+            </div>
+        </div>
+    </div>
+
+    @if (User.IsInRole("Administrador"))
+    {
+        <div class="col-md-3">
+            <div class="card text-white bg-dark mb-3">
+                <div class="card-header">Usuarios</div>
+                <div class="card-body">
+                    <h5 class="card-title">Ir a Usuarios</h5>
+                    <a asp-controller="Usuarios" asp-action="Index" class="btn btn-light">Ver</a>
+                </div>
+            </div>
+        </div>
+    }
 </div>

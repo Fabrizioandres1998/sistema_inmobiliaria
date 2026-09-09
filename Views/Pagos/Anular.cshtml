@@ -1,0 +1,32 @@
+@model InmobiliariaTPI.Models.Pago
+
+@{
+    ViewData["Title"] = "Anular Pago";
+}
+
+<h1>Anular Pago</h1>
+
+<div class="alert alert-warning">
+    <h4>¿Estás seguro de anular este pago?</h4>
+    <p>Esta acción no se puede deshacer.</p>
+</div>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">Concepto</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Concepto)</dd>
+
+        <dt class="col-sm-3">Importe</dt>
+        <dd class="col-sm-9">@Model.Importe.ToString("N2")</dd>
+
+        <dt class="col-sm-3">Fecha de Pago</dt>
+        <dd class="col-sm-9">@Model.FechaPago.ToShortDateString()</dd>
+    </dl>
+</div>
+
+<form asp-action="Anular" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="submit" value="Anular" class="btn btn-danger" />
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Cancelar</a>
+</form>

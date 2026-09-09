@@ -24,22 +24,16 @@
         <dt class="col-sm-3">Fecha Fin</dt>
         <dd class="col-sm-9">@Model.FechaFin.ToShortDateString()</dd>
 
-        @if (Model.FechaFinOriginal.HasValue)
-        {
-            <dt class="col-sm-3">Fecha Fin Original</dt>
-            <dd class="col-sm-9">@Model.FechaFinOriginal.Value.ToShortDateString()</dd>
-        }
-
         <dt class="col-sm-3">Monto por Día</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.MontoPorDia)</dd>
+        <dd class="col-sm-9">@Model.MontoPorDia.ToString("N2")</dd>
 
         <dt class="col-sm-3">Estado</dt>
         <dd class="col-sm-9">
-            @if (string.Equals(Model.Estado, "Activa", StringComparison.OrdinalIgnoreCase))
+            @if (Model.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
             {
                 <span class="badge bg-success">Activa</span>
             }
-            else if (string.Equals(Model.Estado, "Finalizada", StringComparison.OrdinalIgnoreCase))
+            else if (Model.Estado.Equals("Finalizada", StringComparison.OrdinalIgnoreCase))
             {
                 <span class="badge bg-secondary">Finalizada</span>
             }
@@ -48,36 +42,82 @@
                 <span class="badge bg-danger">Cancelada</span>
             }
         </dd>
-
-        <dt class="col-sm-3">Fecha Creación</dt>
-        <dd class="col-sm-9">@Model.FechaCreacion.ToShortDateString()</dd>
-
-        @if (Model.FechaTerminacion.HasValue)
-        {
-            <dt class="col-sm-3">Fecha Terminación</dt>
-            <dd class="col-sm-9">@Model.FechaTerminacion.Value.ToShortDateString()</dd>
-        }
-
-        @if (Model.MultaAplicada.HasValue)
-        {
-            <dt class="col-sm-3">Multa Aplicada</dt>
-            <dd class="col-sm-9">@Html.DisplayFor(m => m.MultaAplicada)</dd>
-        }
-
-        <dt class="col-sm-3">Usuario Creador</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.IdUsuarioCreador)</dd>
-
-        @if (Model.IdUsuarioTerminacion.HasValue)
-        {
-            <dt class="col-sm-3">Usuario Terminación</dt>
-            <dd class="col-sm-9">@Html.DisplayFor(m => m.IdUsuarioTerminacion)</dd>
-        }
     </dl>
 </div>
 
-<div>
+
+<div class="mt-4">
+    <h3>Pagos</h3>
+
+    @if (User.IsInRole("Administrador") || Model.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
+    {
+        <p>
+            <a asp-controller="Pagos" asp-action="Create" asp-route-reservaId="@Model.Id" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle"></i> Agregar Pago
+            </a>
+        </p>
+    }
+
+    @{
+        var pagos = ViewBag.Pagos as IEnumerable<InmobiliariaTPI.Models.Pago>;
+    }
+
+    @if (pagos != null && pagos.Any())
+    {
+        <table class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th>Concepto</th>
+                    <th>Importe</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var pago in pagos)
+                {
+                    <tr>
+                        <td>@pago.Concepto</td>
+                        <td>@pago.Importe.ToString("N2")</td>
+                        <td>@pago.FechaPago.ToShortDateString()</td>
+                        <td>
+                            @if (pago.Estado == 1)
+                            {
+                                <span class="badge bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Anulado</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-controller="Pagos" asp-action="Details" asp-route-id="@pago.Id" class="btn btn-sm btn-info">Detalles</a>
+                            @if (pago.Estado == 1)
+                            {
+                                <a asp-controller="Pagos" asp-action="Edit" asp-route-id="@pago.Id" class="btn btn-sm btn-warning">Editar</a>
+                                @if (User.IsInRole("Administrador"))
+                                {
+                                    <a asp-controller="Pagos" asp-action="Anular" asp-route-id="@pago.Id" class="btn btn-sm btn-danger">Anular</a>
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <p class="mb-0">No hay pagos registrados para esta reserva.</p>
+        </div>
+    }
+</div>
+
+<div class="mt-3">
     <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
-    @if (string.Equals(Model.Estado, "Activa", StringComparison.OrdinalIgnoreCase))
+    @if (Model.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
     {
         <a asp-action="Finalizar" asp-route-id="@Model.Id" class="btn btn-danger">Finalizar</a>
         <a asp-action="Renovar" asp-route-id="@Model.Id" class="btn btn-success">Renovar</a>
