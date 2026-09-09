@@ -1,9 +1,28 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-public class HomeController : Controller
+namespace InmobiliariaTPI.Controllers
 {
-    public IActionResult Index()
+    [Authorize]
+    public class HomeController : Controller
     {
-        return View(); 
+        private readonly ILogger<HomeController> _logger;
+
+        public HomeController(ILogger<HomeController> logger)
+        {
+            _logger = logger;
+        }
+
+        public IActionResult Index()
+        {
+            _logger.LogInformation("Mostrando página de inicio");
+            return View();
+        }
+
+        [AllowAnonymous] 
+        public IActionResult Error()
+        {
+            return View();
+        }
     }
 }

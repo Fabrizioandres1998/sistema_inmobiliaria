@@ -58,7 +58,10 @@
                 </td>
                 <td>
                     <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                    @if (item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                    }
                     @if (string.Equals(item.Estado, "Activa", StringComparison.OrdinalIgnoreCase))
                     {
                         <a asp-action="Finalizar" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Finalizar</a>

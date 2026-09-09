@@ -1,9 +1,11 @@
 using InmobiliariaTPI.Models;
 using InmobiliariaTPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace InmobiliariaTPI.Controllers
 {
+    [Authorize]
     public class PropietariosController : BaseController
     {
         private readonly IPropietarioService _service;

@@ -1,11 +1,13 @@
 using InmobiliariaTPI.Models;
 using InmobiliariaTPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using InmobiliariaTPI.ViewModels;
 
 namespace InmobiliariaTPI.Controllers
 {
+    [Authorize]
     public class ReservasController : BaseController
     {
         private readonly IReservaService _reservaService;
@@ -108,7 +110,7 @@ namespace InmobiliariaTPI.Controllers
         // GET: Reserva/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            _logger.LogInformation("Mostrando formulario de edición para reserva ID: {Id}", id);
+            _logger.LogInformation("Mostrando formulario de edicion para reserva ID: {Id}", id);
             var reserva = await _reservaService.GetByIdAsync(id);
             if (reserva == null)
             {
@@ -116,13 +118,17 @@ namespace InmobiliariaTPI.Controllers
                 return NotFound();
             }
 
-            // Guardar fecha de inicio original para validación
-            ViewBag.FechaInicioOriginal = reserva.FechaInicio;
+            // Validar que la reserva esté activa
+            if (!reserva.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning("Intento de editar reserva no activa ID: {Id}", id);
+                SetErrorMessage("No se puede editar una reserva que no está activa");
+                return RedirectToAction(nameof(Index));
+            }
 
             await CargarDropDowns();
             return View(reserva);
         }
-
         // POST: Reserva/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -131,26 +137,44 @@ namespace InmobiliariaTPI.Controllers
             if (id != reserva.Id)
                 return NotFound();
 
-            if (ModelState.IsValid)
+            // Validar que la reserva esté activa
+            var existente = await _reservaService.GetByIdAsync(id);
+            if (existente == null)
+                return NotFound();
+
+            if (!existente.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
             {
-                try
-                {
-                    await _reservaService.UpdateAsync(reserva);
-                    SetSuccessMessage("Reserva actualizada correctamente");
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (InvalidOperationException ex)
-                {
-                    _logger.LogWarning(ex, "Error de negocio al actualizar reserva ID: {Id}", id);
-                    ModelState.AddModelError("", ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error al actualizar reserva ID: {Id}", id);
-                    ModelState.AddModelError("", ex.Message);
-                    SetErrorMessage("Error al actualizar la reserva");
-                }
+                _logger.LogWarning("Intento de editar reserva no activa ID: {Id}", id);
+                SetErrorMessage("No se puede editar una reserva que no está activa");
+                return RedirectToAction(nameof(Index));
             }
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("ModelState inválido al editar reserva ID: {Id}", id);
+                await CargarDropDowns();
+                return View(reserva);
+            }
+
+            try
+            {
+                _logger.LogInformation("Actualizando reserva ID: {Id}", id);
+                await _reservaService.UpdateAsync(reserva);
+                SetSuccessMessage("Reserva actualizada correctamente");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Error de negocio al actualizar reserva ID: {Id}", id);
+                ModelState.AddModelError("", ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar reserva ID: {Id}", id);
+                ModelState.AddModelError("", ex.Message);
+                SetErrorMessage("Error al actualizar la reserva");
+            }
+
             await CargarDropDowns();
             return View(reserva);
         }

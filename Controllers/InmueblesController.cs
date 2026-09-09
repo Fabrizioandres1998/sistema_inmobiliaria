@@ -2,9 +2,11 @@ using InmobiliariaTPI.Models;
 using InmobiliariaTPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 
 namespace InmobiliariaTPI.Controllers
 {
+    [Authorize]
     public class InmueblesController : BaseController
     {
         private readonly IInmuebleService _inmuebleService;
@@ -120,6 +122,7 @@ namespace InmobiliariaTPI.Controllers
             }
         }
 
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
             _logger.LogInformation("Mostrando confirmación de eliminación para inmueble ID: {Id}", id);
@@ -133,6 +136,7 @@ namespace InmobiliariaTPI.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
