@@ -180,7 +180,7 @@ namespace InmobiliariaTPI.Repositories
         }
 
         // obtiene inmuebles paginados
-        public override async Task<IEnumerable<Inmueble>> GetPagedAsync(int page, int pageSize, string? searchTerm = null)
+        public override async Task<IEnumerable<Inmueble>> GetPagedAsync(int page, int pageSize, string? searchTerm = null, bool soloDisponibles = false)
         {
             _logger.LogInformation("Obteniendo inmuebles paginados - Pagina: {Page}, Tamano: {PageSize}", page, pageSize);
 
@@ -243,7 +243,7 @@ namespace InmobiliariaTPI.Repositories
         }
 
         // obtiene el total de inmuebles para paginacion
-        public override async Task<int> GetTotalCountAsync(string? searchTerm = null)
+        public override async Task<int> GetTotalCountAsync(string? searchTerm = null, bool soloDisponibles = false)
         {
             _logger.LogInformation("Obteniendo total de inmuebles");
 

@@ -24,16 +24,18 @@ namespace InmobiliariaTPI.Controllers
             _tipoInmuebleService = tipoInmuebleService;
         }
 
-        public async Task<IActionResult> Index(int page = 1, int pageSize = 10, string? searchTerm = null)
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10, string? searchTerm = null, bool soloDisponibles = false)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
 
             _logger.LogInformation("=== INDEX INMUEBLES ===");
-            _logger.LogInformation("page: {Page}, pageSize: {PageSize}, searchTerm: {SearchTerm}", page, pageSize, searchTerm ?? "null");
+            _logger.LogInformation("page: {Page}, pageSize: {PageSize}, searchTerm: {SearchTerm}, soloDisponibles: {SoloDisponibles}",
+                page, pageSize, searchTerm ?? "null", soloDisponibles);
 
             ViewBag.SearchTerm = searchTerm;
-            var inmuebles = await _inmuebleService.GetPagedAsync(page, pageSize, searchTerm);
+            ViewBag.SoloDisponibles = soloDisponibles;
+            var inmuebles = await _inmuebleService.GetPagedAsync(page, pageSize, searchTerm, soloDisponibles);
 
             _logger.LogInformation("Total registros: {Total}, PageCount: {PageCount}, PageNumber: {PageNumber}",
                 inmuebles.TotalItemCount, inmuebles.PageCount, inmuebles.PageNumber);

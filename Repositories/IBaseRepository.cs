@@ -7,7 +7,7 @@ namespace InmobiliariaTPI.Repositories
         Task<int> CreateAsync(T entity);
         Task UpdateAsync(T entity);
         Task DeleteAsync(int id);
-        Task<IEnumerable<T>> GetPagedAsync(int page, int pageSize, string? searchTerm = null);
-        Task<int> GetTotalCountAsync(string? searchTerm = null);
+        Task<IEnumerable<T>> GetPagedAsync(int page, int pageSize, string? searchTerm = null, bool soloDisponibles = false);
+        Task<int> GetTotalCountAsync(string? searchTerm = null, bool soloDisponibles = false);
     }
 }

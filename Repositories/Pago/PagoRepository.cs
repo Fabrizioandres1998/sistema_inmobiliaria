@@ -47,11 +47,15 @@ namespace InmobiliariaTPI.Repositories
         public override async Task<Pago?> GetByIdAsync(int id)
         {
             _logger.LogInformation("Buscando pago por ID: {Id}", id);
-            var query = @"SELECT id_pago, concepto, fecha_pago, importe, estado, 
-                                 fecha_creacion, fecha_anulacion, id_reserva, 
-                                 id_usuario_creador, id_usuario_anulacion 
-                          FROM pago 
-                          WHERE id_pago = @Id";
+            var query = @"SELECT p.id_pago, p.concepto, p.fecha_pago, p.importe, p.estado, 
+                         p.fecha_creacion, p.fecha_anulacion, p.id_reserva, 
+                         p.id_usuario_creador, p.id_usuario_anulacion,
+                         uc.nombre_completo AS UsuarioCreadorNombre,
+                         ua.nombre_completo AS UsuarioAnulacionNombre
+                  FROM pago p
+                  LEFT JOIN usuario uc ON p.id_usuario_creador = uc.id_usuario
+                  LEFT JOIN usuario ua ON p.id_usuario_anulacion = ua.id_usuario
+                  WHERE p.id_pago = @Id";
             var parameters = new MySqlParameter[] { new MySqlParameter("@Id", id) };
 
             using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters))
@@ -69,7 +73,17 @@ namespace InmobiliariaTPI.Repositories
                         FechaAnulacion = reader.IsDBNull(6) ? (DateTime?)null : reader.GetDateTime(6),
                         IdReserva = reader.GetInt32(7),
                         IdUsuarioCreador = reader.GetInt32(8),
-                        IdUsuarioAnulacion = reader.IsDBNull(9) ? (int?)null : reader.GetInt32(9)
+                        IdUsuarioAnulacion = reader.IsDBNull(9) ? (int?)null : reader.GetInt32(9),
+                        UsuarioCreador = new Usuario
+                        {
+                            Id = reader.GetInt32(8),
+                            NombreCompleto = reader.IsDBNull(10) ? string.Empty : reader.GetString(10)
+                        },
+                        UsuarioAnulacion = reader.IsDBNull(9) ? null : new Usuario
+                        {
+                            Id = reader.GetInt32(9),
+                            NombreCompleto = reader.IsDBNull(11) ? string.Empty : reader.GetString(11)
+                        }
                     };
                 }
                 _logger.LogWarning("Pago con ID: {Id} no encontrado", id);
@@ -217,7 +231,7 @@ namespace InmobiliariaTPI.Repositories
             _logger.LogInformation("Pago ID: {Id} anulado correctamente", id);
         }
 
-        public override async Task<IEnumerable<Pago>> GetPagedAsync(int page, int pageSize, string? searchTerm = null)
+        public override async Task<IEnumerable<Pago>> GetPagedAsync(int page, int pageSize, string? searchTerm = null, bool soloDisponibles = false)
         {
             _logger.LogInformation("Obteniendo pagos paginados - Pagina: {Page}, Tamano: {PageSize}", page, pageSize);
 
@@ -264,7 +278,7 @@ namespace InmobiliariaTPI.Repositories
             return pagos;
         }
 
-        public override async Task<int> GetTotalCountAsync(string? searchTerm = null)
+        public override async Task<int> GetTotalCountAsync(string? searchTerm = null, bool soloDisponibles = false)
         {
             _logger.LogInformation("Obteniendo total de pagos");
 

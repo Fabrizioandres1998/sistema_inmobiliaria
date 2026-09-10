@@ -192,7 +192,7 @@ namespace InmobiliariaTPI.Repositories
         }
 
         // obtiene usuarios paginados
-        public override async Task<IEnumerable<Usuario>> GetPagedAsync(int page, int pageSize, string? searchTerm = null)
+        public override async Task<IEnumerable<Usuario>> GetPagedAsync(int page, int pageSize, string? searchTerm = null, bool soloDisponibles = false)
         {
             _logger.LogInformation("Obteniendo usuarios paginados - Pagina: {Page}, Tamano: {PageSize}", page, pageSize);
 
@@ -235,7 +235,7 @@ namespace InmobiliariaTPI.Repositories
         }
 
         // obtiene el total de usuarios para paginacion
-        public override async Task<int> GetTotalCountAsync(string? searchTerm = null)
+        public override async Task<int> GetTotalCountAsync(string? searchTerm = null, bool soloDisponibles = false)
         {
             _logger.LogInformation("Obteniendo total de usuarios");
 

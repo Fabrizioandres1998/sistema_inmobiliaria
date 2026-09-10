@@ -71,7 +71,7 @@ namespace InmobiliariaTPI.Services
         }
 
         // sobrescribo GetPagedAsync para usar paginacion en base de datos
-        public override async Task<IPagedList<Propietario>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null)
+        public override async Task<IPagedList<Propietario>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null, bool soloDisponibles = false)
         {
             _logger.LogInformation("Obteniendo página {Page} de propietarios", pageNumber);
 

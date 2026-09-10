@@ -10,7 +10,7 @@ namespace InmobiliariaTPI.Services
         private readonly IInmuebleService _inmuebleService;
 
         public ReservaService(
-            IReservaRepository repository, 
+            IReservaRepository repository,
             ILogger<Reserva> logger,
             IInmuebleService inmuebleService)
             : base(repository, logger)
@@ -44,14 +44,14 @@ namespace InmobiliariaTPI.Services
 
         public async Task<bool> EstaOcupadoAsync(int inmuebleId, DateTime inicio, DateTime fin)
         {
-            _logger.LogInformation("Verificando disponibilidad del inmueble {InmuebleId} entre {Inicio} y {Fin}", 
+            _logger.LogInformation("Verificando disponibilidad del inmueble {InmuebleId} entre {Inicio} y {Fin}",
                 inmuebleId, inicio, fin);
             return await _repository.EstaOcupadoAsync(inmuebleId, inicio, fin);
         }
 
         public async Task<bool> EstaOcupadoAsync(int inmuebleId, DateTime inicio, DateTime fin, int? reservaExcluirId)
         {
-            _logger.LogInformation("Verificando disponibilidad del inmueble {InmuebleId} entre {Inicio} y {Fin} excluyendo reserva {ReservaExcluirId}", 
+            _logger.LogInformation("Verificando disponibilidad del inmueble {InmuebleId} entre {Inicio} y {Fin} excluyendo reserva {ReservaExcluirId}",
                 inmuebleId, inicio, fin, reservaExcluirId);
             return await _repository.EstaOcupadoAsync(inmuebleId, inicio, fin, reservaExcluirId);
         }
@@ -103,7 +103,7 @@ namespace InmobiliariaTPI.Services
             var inmueble = await _inmuebleService.GetByIdAsync(reserva.IdInmueble);
             if (inmueble == null)
                 throw new InvalidOperationException("Inmueble no encontrado");
-            
+
             if (reserva.MontoPorDia != inmueble.PrecioPorDia)
                 throw new InvalidOperationException("El precio por día no coincide con el precio del inmueble");
 
@@ -152,7 +152,7 @@ namespace InmobiliariaTPI.Services
             {
                 estaOcupado = await _repository.EstaOcupadoAsync(reserva.IdInmueble, reserva.FechaInicio, reserva.FechaFin);
             }
-            
+
             if (estaOcupado)
                 throw new InvalidOperationException("El inmueble no esta disponible en esas fechas");
         }
@@ -167,12 +167,12 @@ namespace InmobiliariaTPI.Services
         }
 
         // sobrescribo GetPagedAsync para usar paginacion en base de datos
-        public override async Task<IPagedList<Reserva>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null)
+        public override async Task<IPagedList<Reserva>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null, bool soloVigentes = false)
         {
-            _logger.LogInformation("Obteniendo página {Page} de reservas", pageNumber);
+            _logger.LogInformation("Obteniendo página {Page} de reservas - SoloVigentes: {SoloVigentes}", pageNumber, soloVigentes);
 
-            var items = await _repository.GetPagedAsync(pageNumber, pageSize, searchTerm);
-            var totalCount = await _repository.GetTotalCountAsync(searchTerm);
+            var items = await _repository.GetPagedAsync(pageNumber, pageSize, searchTerm, soloVigentes);
+            var totalCount = await _repository.GetTotalCountAsync(searchTerm, soloVigentes);
 
             return new StaticPagedList<Reserva>(items, pageNumber, pageSize, totalCount);
         }

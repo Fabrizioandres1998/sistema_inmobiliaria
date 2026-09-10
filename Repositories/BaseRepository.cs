@@ -1,6 +1,4 @@
 using InmobiliariaTPI.Data;
-using InmobiliariaTPI.Models;
-using MySql.Data.MySqlClient;
 using Microsoft.Extensions.Logging;
 
 namespace InmobiliariaTPI.Repositories
@@ -18,7 +16,7 @@ namespace InmobiliariaTPI.Repositories
 
         public abstract Task<IEnumerable<T>> GetAllAsync();
         public abstract Task<T?> GetByIdAsync(int id);
-        
+
         public virtual async Task<int> CreateAsync(T entity)
         {
             throw new NotImplementedException("Este método debe ser sobrescrito en el repositorio concreto");
@@ -34,12 +32,12 @@ namespace InmobiliariaTPI.Repositories
             throw new NotImplementedException("Este método debe ser sobrescrito en el repositorio concreto");
         }
 
-        public virtual async Task<IEnumerable<T>> GetPagedAsync(int page, int pageSize, string? searchTerm = null)
+        public virtual async Task<IEnumerable<T>> GetPagedAsync(int page, int pageSize, string? searchTerm = null, bool soloDisponibles = false)
         {
             throw new NotImplementedException("Este método debe ser sobrescrito en el repositorio concreto");
         }
 
-        public virtual async Task<int> GetTotalCountAsync(string? searchTerm = null)
+        public virtual async Task<int> GetTotalCountAsync(string? searchTerm = null, bool soloDisponibles = false)
         {
             throw new NotImplementedException("Este método debe ser sobrescrito en el repositorio concreto");
         }

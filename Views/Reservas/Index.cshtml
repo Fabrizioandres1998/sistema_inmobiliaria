@@ -4,6 +4,7 @@
 
 @{
     ViewData["Title"] = "Reservas";
+    bool soloVigentes = ViewBag.SoloVigentes ?? false;
 }
 
 @if (TempData["Mensaje"] != null)
@@ -18,82 +19,105 @@
 
 <p>
     <a asp-action="Create" class="btn btn-primary">Crear Nueva Reserva</a>
-    <a asp-action="Vigentes" class="btn btn-success">Ver Vigentes</a>
+
+    @if (soloVigentes)
+    {
+        <a asp-action="Index" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-soloVigentes="false"
+           class="btn btn-secondary">
+            Ver Todas
+        </a>
+    }
+    else
+    {
+        <a asp-action="Index" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-soloVigentes="true"
+           class="btn btn-success">
+            Ver Vigentes
+        </a>
+    }
 </p>
 
 <form asp-action="Index" method="get" class="mb-3">
     <div class="input-group">
-        <input type="text" name="searchTerm" class="form-control"
-               placeholder="Buscar por estado o inquilino..."
-               value="@ViewBag.SearchTerm" />
+        <input type="text" name="searchTerm" class="form-control" placeholder="Buscar..." value="@ViewBag.SearchTerm" />
+        <input type="hidden" name="soloVigentes" value="@soloVigentes.ToString().ToLower()" />
         <button type="submit" class="btn btn-outline-secondary">Buscar</button>
         @if (!string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string))
         {
-            <a asp-action="Index" class="btn btn-outline-danger">Limpiar</a>
+            <a asp-action="Index" asp-route-soloVigentes="@soloVigentes" class="btn btn-outline-danger">Limpiar</a>
         }
     </div>
 </form>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Inmueble</th>
-            <th>Inquilino</th>
-            <th>Fecha Inicio</th>
-            <th>Fecha Fin</th>
-            <th>Monto x Día</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
             <tr>
-                <td>@Html.DisplayFor(m => item.Id)</td>
-                <td>@item.Inmueble?.Direccion</td>
-                <td>@item.Inquilino?.NombreCompleto</td>
-                <td>@item.FechaInicio.ToShortDateString()</td>
-                <td>@item.FechaFin.ToShortDateString()</td>
-                <td>@Html.DisplayFor(m => item.MontoPorDia)</td>
-                <td>
-                    @if (string.Equals(item.Estado, "Activa", StringComparison.OrdinalIgnoreCase))
-                    {
-                        <span class="badge bg-success">Activa</span>
-                    }
-                    else if (string.Equals(item.Estado, "Finalizada", StringComparison.OrdinalIgnoreCase))
-                    {
-                        <span class="badge bg-secondary">Finalizada</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-danger">Cancelada</span>
-                    }
-                </td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
-                    @if (item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
-                    {
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
-                    }
-                    @if (string.Equals(item.Estado, "Activa", StringComparison.OrdinalIgnoreCase))
-                    {
-                        <a asp-action="Finalizar" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Finalizar</a>
-                    }
-                    @if (User.IsInRole("Administrador"))
-                    {
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
-                    }
-                </td>
+                <th class="text-nowrap">ID</th>
+                <th class="text-nowrap">Inmueble</th>
+                <th class="text-nowrap">Inquilino</th>
+                <th class="text-nowrap">Fecha Inicio</th>
+                <th class="text-nowrap">Fecha Fin</th>
+                <th class="text-nowrap">Monto/Día</th>
+                <th class="text-nowrap">Monto total</th>
+                <th class="text-nowrap">Estado</th>
+                <th class="text-nowrap">Acciones</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Inmueble?.Direccion</td>
+                    <td>@item.Inquilino?.NombreCompleto</td>
+                    <td>@item.FechaInicio.ToShortDateString()</td>
+                    <td>@item.FechaFin.ToShortDateString()</td>
+                    <td>@item.MontoPorDia.ToString("N2")</td>
+                    <td>@item.MontoTotal.ToString("N2")</td>
+                    <td>
+                        @if (item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="badge bg-success">Activa</span>
+                        }
+                        else if (item.Estado.Equals("Finalizada", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="badge bg-secondary">Finalizada</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Cancelada</span>
+                        }
+                    </td>
+                    <td class="text-nowrap">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
+                        @if (item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                            <a asp-action="Finalizar" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Finalizar</a>
+                            <a asp-action="Renovar" asp-route-id="@item.Id" class="btn btn-sm btn-success">Renovar</a>
+                        }
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
 <div class="d-flex justify-content-center">
-    @Html.PagedListPager(Model, page => Url.Action("Index", new { page, pageSize = Model.PageSize, searchTerm = ViewBag.SearchTerm }),
-        new PagedListRenderOptions
-        {
-            LiElementClasses = new[] { "page-item" },
-            PageClasses = new[] { "page-link" }
-        })
+    @Html.PagedListPager(Model, page => Url.Action("Index", new
+    {
+        page,
+        pageSize = Model.PageSize,
+        searchTerm = ViewBag.SearchTerm,
+        soloVigentes = ViewBag.SoloVigentes
+    }),
+    new PagedListRenderOptions
+    {
+        LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" }
+    })
 </div>

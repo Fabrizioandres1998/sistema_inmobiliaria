@@ -14,13 +14,13 @@ namespace InmobiliariaTPI.Controllers
         private readonly IInmuebleService _inmuebleService;
         private readonly IInquilinoService _inquilinoService;
         private readonly IUsuarioService _usuarioService;
-        private readonly IPagoService _pagoService; 
+        private readonly IPagoService _pagoService;
 
         public ReservasController(
             IReservaService reservaService,
             IInmuebleService inmuebleService,
             IInquilinoService inquilinoService,
-            IPagoService pagoService, 
+            IPagoService pagoService,
             ILogger<ReservasController> logger,
             IUsuarioService usuarioService
             ) : base(logger)
@@ -28,19 +28,23 @@ namespace InmobiliariaTPI.Controllers
             _reservaService = reservaService;
             _inmuebleService = inmuebleService;
             _inquilinoService = inquilinoService;
-            _pagoService = pagoService; 
+            _pagoService = pagoService;
             _usuarioService = usuarioService;
         }
 
         // GET: Reserva
-        public async Task<IActionResult> Index(int page = 1, int pageSize = 10, string? searchTerm = null)
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10, string? searchTerm = null, bool soloVigentes = false)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
 
-            _logger.LogInformation("Obteniendo lista de reservas - Página: {Page}, Búsqueda: {SearchTerm}", page, searchTerm ?? "ninguna");
+            _logger.LogInformation("Obteniendo lista de reservas - Página: {Page}, Búsqueda: {SearchTerm}, SoloVigentes: {SoloVigentes}",
+                page, searchTerm ?? "ninguna", soloVigentes);
+
             ViewBag.SearchTerm = searchTerm;
-            var reservas = await _reservaService.GetPagedAsync(page, pageSize, searchTerm);
+            ViewBag.SoloVigentes = soloVigentes;
+
+            var reservas = await _reservaService.GetPagedAsync(page, pageSize, searchTerm, soloVigentes);
             return View(reservas);
         }
 

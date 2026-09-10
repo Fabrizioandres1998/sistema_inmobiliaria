@@ -82,7 +82,7 @@ namespace InmobiliariaTPI.Services
             throw new InvalidOperationException("Los pagos no se eliminan, se anulan");
         }
 
-        public override async Task<IPagedList<Pago>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null)
+        public override async Task<IPagedList<Pago>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null, bool soloDisponibles = false)
         {
             _logger.LogInformation("Obteniendo página {Page} de pagos", pageNumber);
 

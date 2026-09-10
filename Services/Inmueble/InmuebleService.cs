@@ -113,12 +113,12 @@ namespace InmobiliariaTPI.Services
             await base.UpdateAsync(inmueble);
         }
         // sobrescribo GetPagedAsync para usar paginacion en base de datos
-        public override async Task<IPagedList<Inmueble>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null)
+        public override async Task<IPagedList<Inmueble>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null, bool soloDisponibles = false)
         {
-            _logger.LogInformation("Obteniendo página {Page} de inmuebles", pageNumber);
+            _logger.LogInformation("Obteniendo página {Page} de inmuebles - SoloDisponibles: {SoloDisponibles}", pageNumber, soloDisponibles);
 
-            var items = await _repository.GetPagedAsync(pageNumber, pageSize, searchTerm);
-            var totalCount = await _repository.GetTotalCountAsync(searchTerm);
+            var items = await _repository.GetPagedAsync(pageNumber, pageSize, searchTerm, soloDisponibles);
+            var totalCount = await _repository.GetTotalCountAsync(searchTerm, soloDisponibles);
 
             return new StaticPagedList<Inmueble>(items, pageNumber, pageSize, totalCount);
         }

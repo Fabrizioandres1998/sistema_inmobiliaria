@@ -4,6 +4,7 @@
 
 @{
     ViewData["Title"] = "Inmuebles";
+    bool soloDisponibles = ViewBag.SoloDisponibles ?? false;
 }
 
 @if (TempData["Mensaje"] != null)
@@ -18,80 +19,101 @@
 
 <p>
     <a asp-action="Create" class="btn btn-primary">Crear Nuevo Inmueble</a>
+    
+    @if (soloDisponibles)
+    {
+        <a asp-action="Index" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-soloDisponibles="false" class="btn btn-secondary">
+            Ver Todos
+        </a>
+    }
+    else
+    {
+        <a asp-action="Index" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-soloDisponibles="true" class="btn btn-success">
+            Ver Disponibles
+        </a>
+    }
 </p>
 
 <form asp-action="Index" method="get" class="mb-3">
     <div class="input-group">
-        <input type="text" name="searchTerm" class="form-control"
-               placeholder="Buscar por dirección..."
+        <input type="text" name="searchTerm" class="form-control" placeholder="Buscar por dirección..."
                value="@ViewBag.SearchTerm" />
+        <input type="hidden" name="soloDisponibles" value="@soloDisponibles.ToString().ToLower()" />
         <button type="submit" class="btn btn-outline-secondary">Buscar</button>
         @if (!string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string))
         {
-            <a asp-action="Index" class="btn btn-outline-danger">Limpiar</a>
+            <a asp-action="Index" asp-route-soloDisponibles="@soloDisponibles" class="btn btn-outline-danger">Limpiar</a>
         }
     </div>
 </form>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.First().Id)</th>
-            <th>@Html.DisplayNameFor(model => model.First().Direccion)</th>
-            <th>@Html.DisplayNameFor(model => model.First().CupoMaximo)</th>
-            <th>@Html.DisplayNameFor(model => model.First().PrecioPorDia)</th>
-            <th>@Html.DisplayNameFor(model => model.First().Disponible)</th>
-            <th>Propietario</th>
-            <th>Tipo</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.Id)</td>
-                <td>@Html.DisplayFor(modelItem => item.Direccion)</td>
-                <td>@Html.DisplayFor(modelItem => item.CupoMaximo)</td>
-                <td>@Html.DisplayFor(modelItem => item.PrecioPorDia)</td>
-                <td>
-                    @if (item.Disponible)
-                    {
-                        <span class="badge bg-success">Disponible</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-danger">Suspendido</span>
-                    }
-                </td>
-                <td>@item.Propietario?.NombreCompleto</td>
-                <td>@item.TipoInmueble?.Nombre</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
-                    @if (item.Disponible)
-                    {
-                        <a asp-action="Suspender" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Suspender</a>
-                    }
-                    else
-                    {
-                        <a asp-action="Activar" asp-route-id="@item.Id" class="btn btn-sm btn-success">Activar</a>
-                    }
-                    @if (User.IsInRole("Administrador"))
-                    {
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
-                    }
-                </td>
+                <th class="text-nowrap">ID</th>
+                <th class="text-nowrap">Dirección</th>
+                <th class="text-nowrap">Cupo</th>
+                <th class="text-nowrap">Precio/Día</th>
+                <th class="text-nowrap">Estado</th>
+                <th class="text-nowrap">Propietario</th>
+                <th class="text-nowrap">Tipo</th>
+                <th class="text-nowrap">Acciones</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Direccion</td>
+                    <td>@item.CupoMaximo</td>
+                    <td>@item.PrecioPorDia.ToString("N2")</td>
+                    <td>
+                        @if (item.Disponible)
+                        {
+                            <span class="badge bg-success">Disponible</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Suspendido</span>
+                        }
+                    </td>
+                    <td>@item.Propietario?.NombreCompleto</td>
+                    <td>@item.TipoInmueble?.Nombre</td>
+                    <td class="text-nowrap">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
+                        @if (item.Disponible)
+                        {
+                            <a asp-action="Suspender" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Suspender</a>
+                        }
+                        else
+                        {
+                            <a asp-action="Activar" asp-route-id="@item.Id" class="btn btn-sm btn-success">Activar</a>
+                        }
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
 
 <div class="d-flex justify-content-center">
-    @Html.PagedListPager(Model, page => Url.Action("Index", new { page, pageSize = Model.PageSize, searchTerm = ViewBag.SearchTerm }),
-        new PagedListRenderOptions
-        {
-            LiElementClasses = new[] { "page-item" },
-            PageClasses = new[] { "page-link" }
-        })
+    @Html.PagedListPager(Model, page => Url.Action("Index", new
+    {
+        page,
+        pageSize = Model.PageSize,
+        searchTerm = ViewBag.SearchTerm,
+        soloDisponibles = ViewBag.SoloDisponibles
+    }),
+    new PagedListRenderOptions
+    {
+        LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" }
+    })
 </div>

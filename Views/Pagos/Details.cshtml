@@ -36,23 +36,28 @@
         <dt class="col-sm-3">Reserva</dt>
         <dd class="col-sm-9">@Html.DisplayFor(m => m.IdReserva)</dd>
 
+        <dt class="col-sm-3">Fecha Creación</dt>
+        <dd class="col-sm-9">@Model.FechaCreacion.ToShortDateString()</dd>
+
+        @* ==================== AUDITORÍA (solo Administrador) ==================== *@
         @if (User.IsInRole("Administrador"))
         {
-            <dt class="col-sm-3">Usuario Creador</dt>
-            <dd class="col-sm-9">@Html.DisplayFor(m => m.IdUsuarioCreador)</dd>
+            <dt class="col-sm-3 border-top pt-3">Usuario Creador</dt>
+            <dd class="col-sm-9 border-top pt-3">
+                @Model.UsuarioCreador?.NombreCompleto (ID: @Model.IdUsuarioCreador)
+            </dd>
 
             @if (Model.IdUsuarioAnulacion.HasValue)
             {
                 <dt class="col-sm-3">Usuario Anulación</dt>
-                <dd class="col-sm-9">@Html.DisplayFor(m => m.IdUsuarioAnulacion)</dd>
+                <dd class="col-sm-9">
+                    @Model.UsuarioAnulacion?.NombreCompleto (ID: @Model.IdUsuarioAnulacion)
+                </dd>
 
                 <dt class="col-sm-3">Fecha Anulación</dt>
                 <dd class="col-sm-9">@Model.FechaAnulacion?.ToShortDateString()</dd>
             }
         }
-
-        <dt class="col-sm-3">Fecha Creación</dt>
-        <dd class="col-sm-9">@Model.FechaCreacion.ToShortDateString()</dd>
     </dl>
 </div>
 
@@ -65,5 +70,6 @@
             <a asp-action="Anular" asp-route-id="@Model.Id" class="btn btn-danger">Anular</a>
         }
     }
+    <a asp-controller="Reservas" asp-action="Details" asp-route-id="@Model.IdReserva" class="btn btn-info">Ver Reserva</a>
     <a asp-action="Index" class="btn btn-secondary">Volver</a>
 </div>

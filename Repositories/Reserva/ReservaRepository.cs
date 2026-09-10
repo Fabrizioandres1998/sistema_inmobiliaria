@@ -74,10 +74,14 @@ namespace InmobiliariaTPI.Repositories
                          r.multa_aplicada, r.id_inquilino, r.id_inmueble, 
                          r.id_usuario_creador, r.id_usuario_terminacion,
                          i.direccion AS InmuebleDireccion,
-                         inq.nombre_completo AS InquilinoNombre
+                         inq.nombre_completo AS InquilinoNombre,
+                         uc.nombre_completo AS UsuarioCreadorNombre,
+                         ut.nombre_completo AS UsuarioTerminacionNombre
                   FROM reserva r
                   LEFT JOIN inmueble i ON r.id_inmueble = i.id_inmueble
                   LEFT JOIN inquilino inq ON r.id_inquilino = inq.id_inquilino
+                  LEFT JOIN usuario uc ON r.id_usuario_creador = uc.id_usuario
+                  LEFT JOIN usuario ut ON r.id_usuario_terminacion = ut.id_usuario
                   WHERE r.id_reserva = @Id";
             var parameters = new MySqlParameter[] { new MySqlParameter("@Id", id) };
 
@@ -100,7 +104,6 @@ namespace InmobiliariaTPI.Repositories
                         IdInmueble = reader.GetInt32(10),
                         IdUsuarioCreador = reader.GetInt32(11),
                         IdUsuarioTerminacion = reader.IsDBNull(12) ? (int?)null : reader.GetInt32(12),
-                        // Cargar datos relacionados
                         Inmueble = new Inmueble
                         {
                             Id = reader.GetInt32(10),
@@ -110,6 +113,16 @@ namespace InmobiliariaTPI.Repositories
                         {
                             Id = reader.GetInt32(9),
                             NombreCompleto = reader.GetString(14)
+                        },
+                        UsuarioCreador = new Usuario
+                        {
+                            Id = reader.GetInt32(11),
+                            NombreCompleto = reader.IsDBNull(15) ? string.Empty : reader.GetString(15)
+                        },
+                        UsuarioTerminacion = reader.IsDBNull(12) ? null : new Usuario
+                        {
+                            Id = reader.GetInt32(12),
+                            NombreCompleto = reader.IsDBNull(16) ? string.Empty : reader.GetString(16)
                         }
                     };
                 }
@@ -403,27 +416,41 @@ namespace InmobiliariaTPI.Repositories
         }
 
         // obtiene reservas paginadas
-        public override async Task<IEnumerable<Reserva>> GetPagedAsync(int page, int pageSize, string? searchTerm = null)
+        // obtiene reservas paginadas
+        public override async Task<IEnumerable<Reserva>> GetPagedAsync(int page, int pageSize, string? searchTerm = null, bool soloVigentes = false)
         {
-            _logger.LogInformation("Obteniendo reservas paginadas - Pagina: {Page}, Tamano: {PageSize}", page, pageSize);
+            _logger.LogInformation("Obteniendo reservas paginadas - Pagina: {Page}, Tamano: {PageSize}, SoloVigentes: {SoloVigentes}",
+                page, pageSize, soloVigentes);
 
             var reservas = new List<Reserva>();
             var offset = (page - 1) * pageSize;
 
-            var query = @"SELECT id_reserva, fecha_inicio, fecha_fin, fecha_fin_original, 
-                                 monto_por_dia, estado, fecha_creacion, fecha_terminacion, 
-                                 multa_aplicada, id_inquilino, id_inmueble, 
-                                 id_usuario_creador, id_usuario_terminacion 
-                          FROM reserva";
+            var query = @"SELECT r.id_reserva, r.fecha_inicio, r.fecha_fin, r.fecha_fin_original, 
+                         r.monto_por_dia, r.estado, r.fecha_creacion, r.fecha_terminacion, 
+                         r.multa_aplicada, r.id_inquilino, r.id_inmueble, 
+                         r.id_usuario_creador, r.id_usuario_terminacion,
+                         i.direccion AS InmuebleDireccion,
+                         inq.nombre_completo AS InquilinoNombre
+                  FROM reserva r
+                  LEFT JOIN inmueble i ON r.id_inmueble = i.id_inmueble
+                  LEFT JOIN inquilino inq ON r.id_inquilino = inq.id_inquilino
+                  WHERE 1=1";
+
             var parameters = new List<MySqlParameter>();
+
+            if (soloVigentes)
+            {
+                query += " AND r.estado = 'ACTIVA' AND r.fecha_inicio <= @Hoy AND r.fecha_fin >= @Hoy";
+                parameters.Add(new MySqlParameter("@Hoy", DateTime.Now.Date));
+            }
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query += " WHERE estado LIKE @SearchTerm OR id_inquilino IN (SELECT id_inquilino FROM inquilino WHERE nombre_completo LIKE @SearchTerm)";
+                query += " AND (r.estado LIKE @SearchTerm OR inq.nombre_completo LIKE @SearchTerm OR i.direccion LIKE @SearchTerm)";
                 parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
             }
 
-            query += " ORDER BY id_reserva DESC LIMIT @PageSize OFFSET @Offset";
+            query += " ORDER BY r.id_reserva DESC LIMIT @PageSize OFFSET @Offset";
             parameters.Add(new MySqlParameter("@PageSize", pageSize));
             parameters.Add(new MySqlParameter("@Offset", offset));
 
@@ -445,7 +472,17 @@ namespace InmobiliariaTPI.Repositories
                         IdInquilino = reader.GetInt32(9),
                         IdInmueble = reader.GetInt32(10),
                         IdUsuarioCreador = reader.GetInt32(11),
-                        IdUsuarioTerminacion = reader.IsDBNull(12) ? (int?)null : reader.GetInt32(12)
+                        IdUsuarioTerminacion = reader.IsDBNull(12) ? (int?)null : reader.GetInt32(12),
+                        Inmueble = new Inmueble
+                        {
+                            Id = reader.GetInt32(10),
+                            Direccion = reader.IsDBNull(13) ? string.Empty : reader.GetString(13)
+                        },
+                        Inquilino = new Inquilino
+                        {
+                            Id = reader.GetInt32(9),
+                            NombreCompleto = reader.IsDBNull(14) ? string.Empty : reader.GetString(14)
+                        }
                     });
                 }
             }
@@ -455,16 +492,22 @@ namespace InmobiliariaTPI.Repositories
         }
 
         // obtiene el total de reservas para paginacion
-        public override async Task<int> GetTotalCountAsync(string? searchTerm = null)
+        public override async Task<int> GetTotalCountAsync(string? searchTerm = null, bool soloVigentes = false)
         {
-            _logger.LogInformation("Obteniendo total de reservas");
+            _logger.LogInformation("Obteniendo total de reservas - SoloVigentes: {SoloVigentes}", soloVigentes);
 
-            var query = "SELECT COUNT(1) FROM reserva";
+            var query = "SELECT COUNT(1) FROM reserva r LEFT JOIN inquilino inq ON r.id_inquilino = inq.id_inquilino LEFT JOIN inmueble i ON r.id_inmueble = i.id_inmueble WHERE 1=1";
             var parameters = new List<MySqlParameter>();
+
+            if (soloVigentes)
+            {
+                query += " AND r.estado = 'ACTIVA' AND r.fecha_inicio <= @Hoy AND r.fecha_fin >= @Hoy";
+                parameters.Add(new MySqlParameter("@Hoy", DateTime.Now.Date));
+            }
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query += " WHERE estado LIKE @SearchTerm OR id_inquilino IN (SELECT id_inquilino FROM inquilino WHERE nombre_completo LIKE @SearchTerm)";
+                query += " AND (r.estado LIKE @SearchTerm OR inq.nombre_completo LIKE @SearchTerm OR i.direccion LIKE @SearchTerm)";
                 parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
             }
 

@@ -134,7 +134,7 @@ namespace InmobiliariaTPI.Repositories
         }
 
         // obtiene inquilinos paginados
-        public override async Task<IEnumerable<Inquilino>> GetPagedAsync(int page, int pageSize, string? searchTerm = null)
+        public override async Task<IEnumerable<Inquilino>> GetPagedAsync(int page, int pageSize, string? searchTerm = null, bool soloDisponibles = false)
         {
             _logger.LogInformation("Obteniendo inquilinos paginados - Pagina: {Page}, Tamano: {PageSize}", page, pageSize);
             
@@ -176,7 +176,7 @@ namespace InmobiliariaTPI.Repositories
         }
 
         // obtiene el total de inquilinos para paginacion
-        public override async Task<int> GetTotalCountAsync(string? searchTerm = null)
+        public override async Task<int> GetTotalCountAsync(string? searchTerm = null, bool soloDisponibles = false)
         {
             _logger.LogInformation("Obteniendo total de inquilinos");
             

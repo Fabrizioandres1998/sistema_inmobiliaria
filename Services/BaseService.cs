@@ -1,7 +1,6 @@
 using InmobiliariaTPI.Repositories;
 using Microsoft.Extensions.Logging;
 using X.PagedList;
-using X.PagedList.Extensions;
 
 namespace InmobiliariaTPI.Services
 {
@@ -49,12 +48,12 @@ namespace InmobiliariaTPI.Services
             await _repository.DeleteAsync(id);
         }
 
-        public virtual async Task<IPagedList<TEntity>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null)
+        public virtual async Task<IPagedList<TEntity>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null, bool soloDisponibles = false)
         {
             _logger.LogInformation("Obteniendo página {Page} de {Entity}", pageNumber, typeof(TEntity).Name);
 
-            var items = await _repository.GetPagedAsync(pageNumber, pageSize, searchTerm);
-            var totalCount = await _repository.GetTotalCountAsync(searchTerm);
+            var items = await _repository.GetPagedAsync(pageNumber, pageSize, searchTerm, soloDisponibles);
+            var totalCount = await _repository.GetTotalCountAsync(searchTerm, soloDisponibles);
 
             return new StaticPagedList<TEntity>(items, pageNumber, pageSize, totalCount);
         }
