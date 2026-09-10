@@ -15,10 +15,14 @@ namespace InmobiliariaTPI.Controllers
             _service = service;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10, string? searchTerm = null)
         {
-            _logger.LogInformation("Obteniendo lista de propietarios");
-            var propietarios = await _service.GetAllAsync();
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            _logger.LogInformation("Obteniendo lista de propietarios - Página: {Page}, Búsqueda: {SearchTerm}", page, searchTerm ?? "ninguna");
+            ViewBag.SearchTerm = searchTerm;
+            var propietarios = await _service.GetPagedAsync(page, pageSize, searchTerm);
             return View(propietarios);
         }
 

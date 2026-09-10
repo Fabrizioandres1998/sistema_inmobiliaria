@@ -33,10 +33,14 @@ namespace InmobiliariaTPI.Controllers
         }
 
         // GET: Reserva
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10, string? searchTerm = null)
         {
-            _logger.LogInformation("Obteniendo lista de reservas");
-            var reservas = await _reservaService.GetAllAsync();
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            _logger.LogInformation("Obteniendo lista de reservas - Página: {Page}, Búsqueda: {SearchTerm}", page, searchTerm ?? "ninguna");
+            ViewBag.SearchTerm = searchTerm;
+            var reservas = await _reservaService.GetPagedAsync(page, pageSize, searchTerm);
             return View(reservas);
         }
 

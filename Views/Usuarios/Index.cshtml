@@ -1,29 +1,30 @@
-@model IPagedList<InmobiliariaTPI.Models.Inquilino>
+@model IPagedList<InmobiliariaTPI.Models.Usuario>
 @using X.PagedList
 @using X.PagedList.Mvc.Core
 
 @{
-    ViewData["Title"] = "Inquilinos";
+    ViewData["Title"] = "Usuarios";
 }
 
-@if (TempData["Mensaje"] != null)
+<h1>Usuarios</h1>
+
+@if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-@(TempData["Tipo"] ?? "success") alert-dismissible fade show" role="alert">
-        @TempData["Mensaje"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
 }
-
-<h1>Inquilinos</h1>
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
 
 <p>
-    <a asp-action="Create" class="btn btn-primary">Crear Nuevo Inquilino</a>
+    <a asp-action="Create" class="btn btn-primary">Crear Nuevo Usuario</a>
 </p>
 
 <form asp-action="Index" method="get" class="mb-3">
     <div class="input-group">
-        <input type="text" name="searchTerm" class="form-control"
-               placeholder="Buscar por nombre, DNI o email..."
+        <input type="text" name="searchTerm" class="form-control" 
+               placeholder="Buscar por nombre o email..." 
                value="@ViewBag.SearchTerm" />
         <button type="submit" class="btn btn-outline-secondary">Buscar</button>
         @if (!string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string))
@@ -36,11 +37,9 @@
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>@Html.DisplayNameFor(model => model.First().Id)</th>
             <th>@Html.DisplayNameFor(model => model.First().NombreCompleto)</th>
-            <th>@Html.DisplayNameFor(model => model.First().Dni)</th>
             <th>@Html.DisplayNameFor(model => model.First().Email)</th>
-            <th>@Html.DisplayNameFor(model => model.First().Telefono)</th>
+            <th>@Html.DisplayNameFor(model => model.First().Rol)</th>
             <th>Acciones</th>
         </tr>
     </thead>
@@ -48,18 +47,13 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.Id)</td>
                 <td>@Html.DisplayFor(modelItem => item.NombreCompleto)</td>
-                <td>@Html.DisplayFor(modelItem => item.Dni)</td>
                 <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                <td>@Html.DisplayFor(modelItem => item.Telefono)</td>
+                <td>@Html.DisplayFor(modelItem => item.Rol)</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
                     <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
-                    @if (User.IsInRole("Administrador"))
-                    {
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
-                    }
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
                 </td>
             </tr>
         }

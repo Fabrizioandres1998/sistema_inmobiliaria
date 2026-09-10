@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InmobiliariaTPI.Models
 {
@@ -39,8 +40,14 @@ namespace InmobiliariaTPI.Models
         [Display(Name = "Id propietario")]
         public int IdPropietario { get; set; }
 
+        [ForeignKey("IdPropietario")]
+        public virtual Propietario? Propietario { get; set; }
+
         [Required(ErrorMessage = "El tipo de inmueble es obligatorio")]
         [Display(Name = "Id tipo de inmueble")]
         public int IdTipoInmueble { get; set; }
+
+        [ForeignKey("IdTipoInmueble")]
+        public virtual TipoInmueble? TipoInmueble { get; set; }
     }
 }

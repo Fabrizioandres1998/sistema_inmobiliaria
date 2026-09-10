@@ -16,11 +16,15 @@ namespace InmobiliariaTPI.Repositories
         {
             _logger.LogInformation("Obteniendo todos los inmuebles");
             var inmuebles = new List<Inmueble>();
-            var query = @"SELECT id_inmueble, direccion, cupo_maximo, coordenadas, 
-                                precio_por_dia, imagen_portada, disponible, 
-                                porcentaje_reserva, fecha_creacion, 
-                                id_propietario, id_tipo_inmueble 
-                        FROM inmueble";
+            var query = @"SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
+                                 i.precio_por_dia, i.imagen_portada, i.disponible, 
+                                 i.porcentaje_reserva, i.fecha_creacion, 
+                                 i.id_propietario, i.id_tipo_inmueble,
+                                 p.nombre_completo AS PropietarioNombre,
+                                 t.nombre AS TipoNombre
+                          FROM inmueble i
+                          LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
+                          LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble";
 
             using (var reader = await _dbHelper.ExecuteReaderAsync(query))
             {
@@ -38,7 +42,15 @@ namespace InmobiliariaTPI.Repositories
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
-                        IdTipoInmueble = reader.GetInt32(10)
+                        IdTipoInmueble = reader.GetInt32(10),
+                        Propietario = new Propietario
+                        {
+                            NombreCompleto = reader.GetString(11)
+                        },
+                        TipoInmueble = new TipoInmueble
+                        {
+                            Nombre = reader.GetString(12)
+                        }
                     });
                 }
             }
@@ -49,12 +61,16 @@ namespace InmobiliariaTPI.Repositories
         public override async Task<Inmueble?> GetByIdAsync(int id)
         {
             _logger.LogInformation("Buscando inmueble por ID: {Id}", id);
-            var query = @"SELECT id_inmueble, direccion, cupo_maximo, coordenadas, 
-                                precio_por_dia, imagen_portada, disponible, 
-                                porcentaje_reserva, fecha_creacion, 
-                                id_propietario, id_tipo_inmueble 
-                        FROM inmueble 
-                        WHERE id_inmueble = @Id";
+            var query = @"SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
+                                 i.precio_por_dia, i.imagen_portada, i.disponible, 
+                                 i.porcentaje_reserva, i.fecha_creacion, 
+                                 i.id_propietario, i.id_tipo_inmueble,
+                                 p.nombre_completo AS PropietarioNombre,
+                                 t.nombre AS TipoNombre
+                          FROM inmueble i
+                          LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
+                          LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble
+                          WHERE i.id_inmueble = @Id";
             var parameters = new MySqlParameter[] { new MySqlParameter("@Id", id) };
 
             using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters))
@@ -73,7 +89,15 @@ namespace InmobiliariaTPI.Repositories
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
-                        IdTipoInmueble = reader.GetInt32(10)
+                        IdTipoInmueble = reader.GetInt32(10),
+                        Propietario = new Propietario
+                        {
+                            NombreCompleto = reader.GetString(11)
+                        },
+                        TipoInmueble = new TipoInmueble
+                        {
+                            Nombre = reader.GetString(12)
+                        }
                     };
                 }
                 _logger.LogWarning("Inmueble con ID: {Id} no encontrado", id);
@@ -159,28 +183,32 @@ namespace InmobiliariaTPI.Repositories
         public override async Task<IEnumerable<Inmueble>> GetPagedAsync(int page, int pageSize, string? searchTerm = null)
         {
             _logger.LogInformation("Obteniendo inmuebles paginados - Pagina: {Page}, Tamano: {PageSize}", page, pageSize);
-            
+
             var inmuebles = new List<Inmueble>();
             var offset = (page - 1) * pageSize;
-            
-            var query = @"SELECT id_inmueble, direccion, cupo_maximo, coordenadas, 
-                                 precio_por_dia, imagen_portada, disponible, 
-                                 porcentaje_reserva, fecha_creacion, 
-                                 id_propietario, id_tipo_inmueble 
-                          FROM inmueble";
-            
+
+            var query = @"SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
+                                 i.precio_por_dia, i.imagen_portada, i.disponible, 
+                                 i.porcentaje_reserva, i.fecha_creacion, 
+                                 i.id_propietario, i.id_tipo_inmueble,
+                                 p.nombre_completo AS PropietarioNombre,
+                                 t.nombre AS TipoNombre
+                          FROM inmueble i
+                          LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
+                          LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble";
+
             var parameters = new List<MySqlParameter>();
-            
+
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query += " WHERE direccion LIKE @SearchTerm OR coordenadas LIKE @SearchTerm";
+                query += " WHERE i.direccion LIKE @SearchTerm OR i.coordenadas LIKE @SearchTerm";
                 parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
             }
-            
-            query += " ORDER BY id_inmueble DESC LIMIT @PageSize OFFSET @Offset";
+
+            query += " ORDER BY i.id_inmueble DESC LIMIT @PageSize OFFSET @Offset";
             parameters.Add(new MySqlParameter("@PageSize", pageSize));
             parameters.Add(new MySqlParameter("@Offset", offset));
-            
+
             using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters.ToArray()))
             {
                 while (await reader.ReadAsync())
@@ -197,11 +225,19 @@ namespace InmobiliariaTPI.Repositories
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
-                        IdTipoInmueble = reader.GetInt32(10)
+                        IdTipoInmueble = reader.GetInt32(10),
+                        Propietario = new Propietario
+                        {
+                            NombreCompleto = reader.GetString(11)
+                        },
+                        TipoInmueble = new TipoInmueble
+                        {
+                            Nombre = reader.GetString(12)
+                        }
                     });
                 }
             }
-            
+
             _logger.LogInformation("Se obtuvieron {Count} inmuebles", inmuebles.Count);
             return inmuebles;
         }
@@ -210,16 +246,16 @@ namespace InmobiliariaTPI.Repositories
         public override async Task<int> GetTotalCountAsync(string? searchTerm = null)
         {
             _logger.LogInformation("Obteniendo total de inmuebles");
-            
+
             var query = "SELECT COUNT(1) FROM inmueble";
             var parameters = new List<MySqlParameter>();
-            
+
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 query += " WHERE direccion LIKE @SearchTerm OR coordenadas LIKE @SearchTerm";
                 parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
             }
-            
+
             var result = await _dbHelper.ExecuteScalarAsync(query, parameters.ToArray());
             return result != null ? Convert.ToInt32(result) : 0;
         }
@@ -229,12 +265,16 @@ namespace InmobiliariaTPI.Repositories
         {
             _logger.LogInformation("Obteniendo inmuebles del propietario ID: {PropietarioId}", propietarioId);
             var inmuebles = new List<Inmueble>();
-            var query = @"SELECT id_inmueble, direccion, cupo_maximo, coordenadas, 
-                                 precio_por_dia, imagen_portada, disponible, 
-                                 porcentaje_reserva, fecha_creacion, 
-                                 id_propietario, id_tipo_inmueble 
-                          FROM inmueble 
-                          WHERE id_propietario = @PropietarioId";
+            var query = @"SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
+                                 i.precio_por_dia, i.imagen_portada, i.disponible, 
+                                 i.porcentaje_reserva, i.fecha_creacion, 
+                                 i.id_propietario, i.id_tipo_inmueble,
+                                 p.nombre_completo AS PropietarioNombre,
+                                 t.nombre AS TipoNombre
+                          FROM inmueble i
+                          LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
+                          LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble
+                          WHERE i.id_propietario = @PropietarioId";
 
             var parameters = new MySqlParameter[] { new MySqlParameter("@PropietarioId", propietarioId) };
 
@@ -254,7 +294,15 @@ namespace InmobiliariaTPI.Repositories
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
-                        IdTipoInmueble = reader.GetInt32(10)
+                        IdTipoInmueble = reader.GetInt32(10),
+                        Propietario = new Propietario
+                        {
+                            NombreCompleto = reader.GetString(11)
+                        },
+                        TipoInmueble = new TipoInmueble
+                        {
+                            Nombre = reader.GetString(12)
+                        }
                     });
                 }
             }
@@ -267,12 +315,16 @@ namespace InmobiliariaTPI.Repositories
         {
             _logger.LogInformation("Obteniendo inmuebles disponibles");
             var inmuebles = new List<Inmueble>();
-            var query = @"SELECT id_inmueble, direccion, cupo_maximo, coordenadas, 
-                                 precio_por_dia, imagen_portada, disponible, 
-                                 porcentaje_reserva, fecha_creacion, 
-                                 id_propietario, id_tipo_inmueble 
-                          FROM inmueble 
-                          WHERE disponible = true";
+            var query = @"SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
+                                 i.precio_por_dia, i.imagen_portada, i.disponible, 
+                                 i.porcentaje_reserva, i.fecha_creacion, 
+                                 i.id_propietario, i.id_tipo_inmueble,
+                                 p.nombre_completo AS PropietarioNombre,
+                                 t.nombre AS TipoNombre
+                          FROM inmueble i
+                          LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
+                          LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble
+                          WHERE i.disponible = true";
 
             using (var reader = await _dbHelper.ExecuteReaderAsync(query))
             {
@@ -290,7 +342,15 @@ namespace InmobiliariaTPI.Repositories
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
-                        IdTipoInmueble = reader.GetInt32(10)
+                        IdTipoInmueble = reader.GetInt32(10),
+                        Propietario = new Propietario
+                        {
+                            NombreCompleto = reader.GetString(11)
+                        },
+                        TipoInmueble = new TipoInmueble
+                        {
+                            Nombre = reader.GetString(12)
+                        }
                     });
                 }
             }
@@ -307,8 +367,12 @@ namespace InmobiliariaTPI.Repositories
                 SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
                        i.precio_por_dia, i.imagen_portada, i.disponible, 
                        i.porcentaje_reserva, i.fecha_creacion, 
-                       i.id_propietario, i.id_tipo_inmueble 
+                       i.id_propietario, i.id_tipo_inmueble,
+                       p.nombre_completo AS PropietarioNombre,
+                       t.nombre AS TipoNombre
                 FROM inmueble i
+                LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
+                LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble
                 WHERE i.disponible = true
                 AND NOT EXISTS (
                     SELECT 1 FROM reserva r 
@@ -339,7 +403,15 @@ namespace InmobiliariaTPI.Repositories
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
-                        IdTipoInmueble = reader.GetInt32(10)
+                        IdTipoInmueble = reader.GetInt32(10),
+                        Propietario = new Propietario
+                        {
+                            NombreCompleto = reader.GetString(11)
+                        },
+                        TipoInmueble = new TipoInmueble
+                        {
+                            Nombre = reader.GetString(12)
+                        }
                     });
                 }
             }
@@ -358,8 +430,12 @@ namespace InmobiliariaTPI.Repositories
                        i.precio_por_dia, i.imagen_portada, i.disponible, 
                        i.porcentaje_reserva, i.fecha_creacion, 
                        i.id_propietario, i.id_tipo_inmueble,
+                       p.nombre_completo AS PropietarioNombre,
+                       t.nombre AS TipoNombre,
                        COUNT(r.id_reserva) as CantidadReservas
                 FROM inmueble i
+                LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
+                LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble
                 INNER JOIN reserva r ON i.id_inmueble = r.id_inmueble
                 WHERE r.fecha_creacion >= @FechaLimite
                 GROUP BY i.id_inmueble
@@ -383,7 +459,15 @@ namespace InmobiliariaTPI.Repositories
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
-                        IdTipoInmueble = reader.GetInt32(10)
+                        IdTipoInmueble = reader.GetInt32(10),
+                        Propietario = new Propietario
+                        {
+                            NombreCompleto = reader.GetString(11)
+                        },
+                        TipoInmueble = new TipoInmueble
+                        {
+                            Nombre = reader.GetString(12)
+                        }
                     });
                 }
             }
@@ -399,10 +483,14 @@ namespace InmobiliariaTPI.Repositories
             var inmuebles = new List<Inmueble>();
             var query = @"
                 SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
-                    i.precio_por_dia, i.imagen_portada, i.disponible, 
-                    i.porcentaje_reserva, i.fecha_creacion, 
-                    i.id_propietario, i.id_tipo_inmueble 
+                       i.precio_por_dia, i.imagen_portada, i.disponible, 
+                       i.porcentaje_reserva, i.fecha_creacion, 
+                       i.id_propietario, i.id_tipo_inmueble,
+                       p.nombre_completo AS PropietarioNombre,
+                       t.nombre AS TipoNombre
                 FROM inmueble i
+                LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
+                LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble
                 LEFT JOIN reserva r ON i.id_inmueble = r.id_inmueble 
                     AND r.fecha_creacion >= @FechaLimite
                 WHERE r.id_reserva IS NULL";
@@ -425,7 +513,15 @@ namespace InmobiliariaTPI.Repositories
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
-                        IdTipoInmueble = reader.GetInt32(10)
+                        IdTipoInmueble = reader.GetInt32(10),
+                        Propietario = new Propietario
+                        {
+                            NombreCompleto = reader.GetString(11)
+                        },
+                        TipoInmueble = new TipoInmueble
+                        {
+                            Nombre = reader.GetString(12)
+                        }
                     });
                 }
             }

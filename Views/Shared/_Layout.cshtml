@@ -8,48 +8,49 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        .nav-link-custom {
-            cursor: pointer;
-            transition: all 0.2s ease;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            text-decoration: none;
-        }
+            .nav-link-custom {
+                cursor: pointer;
+                transition: all 0.2s ease;
+                padding: 0.5rem 1rem;
+                border-radius: 5px;
+                text-decoration: none;
+            }
 
-        .nav-link-custom:hover {
-            transform: scale(1.05);
-            background-color: #f8f9fa;
-        }
+            .nav-link-custom:hover {
+                transform: scale(1.05);
+                background-color: #f8f9fa;
+            }
 
-        .nav-link-user {
-            padding: 0.5rem 1rem;
-            color: #212529;
-            font-weight: 500;
-        }
+            .nav-link-user {
+                padding: 0.5rem 1rem;
+                color: #212529;
+                font-weight: 500;
+            }
 
-        html, body {
-            height: 100%;
-            margin: 0;
-        }
+            html,
+            body {
+                height: 100%;
+                margin: 0;
+            }
 
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+            body {
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+            }
 
-        .container {
-            flex: 1;
-        }
+            .container {
+                flex: 1;
+            }
 
-        .footer {
-            margin-top: auto;
-            width: 100%;
-            white-space: nowrap;
-            line-height: 60px;
-            background-color: #f8f9fa;
-            border-top: 1px solid #dee2e6;
-        }
+            .footer {
+                margin-top: auto;
+                width: 100%;
+                white-space: nowrap;
+                line-height: 60px;
+                background-color: #f8f9fa;
+                border-top: 1px solid #dee2e6;
+            }
     </style>
 </head>
 
@@ -100,9 +101,9 @@
                         </ul>
                         <ul class="navbar-nav">
                             <li class="nav-item">
-                                <span class="nav-link nav-link-user">
+                                <a class="nav-link nav-link-user" asp-controller="Usuarios" asp-action="MiPerfil">
                                     <i class="bi bi-person-circle"></i> @User.Identity.Name
-                                </span>
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-danger fw-semibold" asp-controller="Auth" asp-action="Logout"

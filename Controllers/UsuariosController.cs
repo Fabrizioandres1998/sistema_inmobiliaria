@@ -2,21 +2,27 @@ using InmobiliariaTPI.Models;
 using InmobiliariaTPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace InmobiliariaTPI.Controllers
 {
-    [Authorize(Roles = "Administrador")]
-    public class UsuarioController : BaseController
+    [Authorize] // Cualquier usuario logueado
+    public class UsuariosController : BaseController
     {
         private readonly IUsuarioService _service;
 
-        public UsuarioController(IUsuarioService service, ILogger<UsuarioController> logger)
+        public UsuariosController(IUsuarioService service, ILogger<UsuariosController> logger)
             : base(logger)
         {
             _service = service;
         }
 
+        // ============================================================
+        // ACCIONES DE ADMIN (solo rol Administrador)
+        // ============================================================
+
         // GET: Usuario
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Index(int page = 1, int pageSize = 10, string? searchTerm = null)
         {
             _logger.LogInformation("Obteniendo lista de usuarios - Pagina: {Page}, Busqueda: {SearchTerm}", page, searchTerm ?? "ninguna");
@@ -26,6 +32,7 @@ namespace InmobiliariaTPI.Controllers
         }
 
         // GET: Usuario/Details/5
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Details(int id)
         {
             _logger.LogInformation("Obteniendo detalle del usuario ID: {Id}", id);
@@ -39,6 +46,7 @@ namespace InmobiliariaTPI.Controllers
         }
 
         // GET: Usuario/Create
+        [Authorize(Roles = "Administrador")]
         public IActionResult Create()
         {
             _logger.LogInformation("Mostrando formulario de creacion de usuario");
@@ -48,6 +56,7 @@ namespace InmobiliariaTPI.Controllers
         // POST: Usuario/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Create(Usuario usuario)
         {
             if (!ModelState.IsValid)
@@ -78,7 +87,8 @@ namespace InmobiliariaTPI.Controllers
             return View(usuario);
         }
 
-        // GET: Usuario/Edit/5
+        // GET: Usuario/Edit/5 (admin edita a otro usuario)
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Edit(int id)
         {
             _logger.LogInformation("Mostrando formulario de edicion para usuario ID: {Id}", id);
@@ -89,13 +99,12 @@ namespace InmobiliariaTPI.Controllers
                 return NotFound();
             }
 
-            // no se puede editar a si mismo desde aqui
+            // Si intenta editarse a sí mismo, redirigir a Mi Perfil
             var usuarioActual = await GetUsuarioActual();
             if (usuarioActual != null && usuarioActual.Id == id)
             {
-                _logger.LogWarning("Intento de editar el propio usuario desde UsuarioController");
-                SetErrorMessage("No puedes editarte a ti mismo. Usa la seccion de Perfil.");
-                return RedirectToAction(nameof(Index));
+                _logger.LogInformation("Admin intentando editar su propio usuario. Redirigiendo a Mi Perfil");
+                return RedirectToAction(nameof(MiPerfil));
             }
 
             return View(usuario);
@@ -104,6 +113,7 @@ namespace InmobiliariaTPI.Controllers
         // POST: Usuario/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Edit(int id, Usuario usuario)
         {
             if (id != usuario.Id)
@@ -141,6 +151,7 @@ namespace InmobiliariaTPI.Controllers
         }
 
         // GET: Usuario/Delete/5
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
             _logger.LogInformation("Mostrando confirmacion de eliminacion para usuario ID: {Id}", id);
@@ -151,7 +162,6 @@ namespace InmobiliariaTPI.Controllers
                 return NotFound();
             }
 
-            // no se puede eliminar a si mismo
             var usuarioActual = await GetUsuarioActual();
             if (usuarioActual != null && usuarioActual.Id == id)
             {
@@ -166,13 +176,13 @@ namespace InmobiliariaTPI.Controllers
         // POST: Usuario/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try
             {
                 _logger.LogInformation("Eliminando usuario ID: {Id}", id);
 
-                // no se puede eliminar a si mismo
                 var usuarioActual = await GetUsuarioActual();
                 if (usuarioActual != null && usuarioActual.Id == id)
                 {
@@ -197,13 +207,138 @@ namespace InmobiliariaTPI.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // obtiene el usuario actual desde la sesion
+        // ============================================================
+        // ACCIONES DE PERFIL (cualquier usuario logueado)
+        // ============================================================
+
+        // GET: Usuario/MiPerfil
+        public async Task<IActionResult> MiPerfil()
+        {
+            _logger.LogInformation("=== ENTRÓ A MiPerfil ===");
+            _logger.LogInformation("Autenticado: {Auth}", User.Identity?.IsAuthenticated);
+            _logger.LogInformation("Nombre: {Name}", User.Identity?.Name);
+
+            var usuario = await GetUsuarioActual();
+            if (usuario == null)
+            {
+                _logger.LogWarning("Usuario actual no encontrado");
+                return NotFound();
+            }
+            return View(usuario);
+        }
+
+        // GET: Usuario/EditarMiPerfil
+        public async Task<IActionResult> EditarMiPerfil()
+        {
+            _logger.LogInformation("Mostrando formulario de edicion de perfil");
+            var usuario = await GetUsuarioActual();
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+            return View(usuario);
+        }
+
+        // POST: Usuario/EditarMiPerfil
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditarMiPerfil(Usuario usuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("ModelState invalido al editar perfil");
+                return View(usuario);
+            }
+
+            try
+            {
+                var usuarioActual = await GetUsuarioActual();
+                if (usuarioActual == null || usuarioActual.Id != usuario.Id)
+                {
+                    _logger.LogWarning("Intento de editar un perfil ajeno");
+                    return Forbid();
+                }
+
+                // Mantener el rol original (no se puede cambiar desde el perfil)
+                usuario.Rol = usuarioActual.Rol;
+
+                _logger.LogInformation("Actualizando perfil del usuario ID: {Id}", usuario.Id);
+                await _service.UpdateAsync(usuario);
+                SetSuccessMessage("Perfil actualizado correctamente");
+                return RedirectToAction(nameof(MiPerfil));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Error de negocio al actualizar perfil");
+                ModelState.AddModelError("", ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar perfil");
+                ModelState.AddModelError("", ex.Message);
+                SetErrorMessage("Error al actualizar el perfil");
+            }
+
+            return View(usuario);
+        }
+
+        // GET: Usuario/CambiarPassword
+        public IActionResult CambiarPassword()
+        {
+            return View();
+        }
+
+        // POST: Usuario/CambiarPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CambiarPassword(string passwordActual, string passwordNueva, string confirmarPassword)
+        {
+            if (passwordNueva != confirmarPassword)
+            {
+                ModelState.AddModelError("", "Las contraseñas no coinciden");
+                return View();
+            }
+
+            try
+            {
+                var usuario = await GetUsuarioActual();
+                if (usuario == null) return NotFound();
+
+                if (usuario.Password != passwordActual)
+                {
+                    ModelState.AddModelError("", "La contraseña actual es incorrecta");
+                    return View();
+                }
+
+                usuario.Password = passwordNueva;
+                await _service.UpdateAsync(usuario);
+                SetSuccessMessage("Contraseña cambiada correctamente");
+                return RedirectToAction(nameof(MiPerfil));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al cambiar contraseña");
+                ModelState.AddModelError("", ex.Message);
+                return View();
+            }
+        }
+
+        
+
+        // ============================================================
+        // MÉTODOS PRIVADOS
+        // ============================================================
+
         private async Task<Usuario?> GetUsuarioActual()
         {
             if (User.Identity?.IsAuthenticated == true)
             {
-                var email = User.Identity.Name;
-                return await _service.GetByEmailAsync(email!);
+                // Buscar por el email del claim en lugar del Name
+                var email = User.FindFirst(ClaimTypes.Email)?.Value;
+                if (!string.IsNullOrEmpty(email))
+                {
+                    return await _service.GetByEmailAsync(email);
+                }
             }
             return null;
         }

@@ -1,4 +1,6 @@
-@model IEnumerable<InmobiliariaTPI.Models.Pago>
+@model IPagedList<InmobiliariaTPI.Models.Pago>
+@using X.PagedList
+@using X.PagedList.Mvc.Core
 
 @{
     ViewData["Title"] = "Pagos";
@@ -15,14 +17,25 @@
 <h1>Pagos</h1>
 
 
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="searchTerm" class="form-control" placeholder="Buscar por concepto..."
+               value="@ViewBag.SearchTerm" />
+        <button type="submit" class="btn btn-outline-secondary">Buscar</button>
+        @if (!string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string))
+        {
+            <a asp-action="Index" class="btn btn-outline-danger">Limpiar</a>
+        }
+    </div>
+</form>
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>@Html.DisplayNameFor(model => model.Id)</th>
-            <th>@Html.DisplayNameFor(model => model.Concepto)</th>
-            <th>@Html.DisplayNameFor(model => model.FechaPago)</th>
-            <th>@Html.DisplayNameFor(model => model.Importe)</th>
-            <th>@Html.DisplayNameFor(model => model.Estado)</th>
+            <th>@Html.DisplayNameFor(model => model.First().Id)</th>
+            <th>@Html.DisplayNameFor(model => model.First().Concepto)</th>
+            <th>@Html.DisplayNameFor(model => model.First().FechaPago)</th>
+            <th>@Html.DisplayNameFor(model => model.First().Importe)</th>
+            <th>@Html.DisplayNameFor(model => model.First().Estado)</th>
             <th>Reserva</th>
             <th>Acciones</th>
         </tr>
@@ -61,3 +74,17 @@
         }
     </tbody>
 </table>
+<div class="d-flex justify-content-center">
+    @Html.PagedListPager(Model, page => Url.Action("Index", new
+    {
+        page,
+        pageSize = Model.PageSize,
+        searchTerm =
+    ViewBag.SearchTerm
+    }),
+        new PagedListRenderOptions
+        {
+            LiElementClasses = new[] { "page-item" },
+            PageClasses = new[] { "page-link" }
+        })
+</div>
