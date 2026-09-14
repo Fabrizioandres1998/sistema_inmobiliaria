@@ -1,6 +1,7 @@
 using InmobiliariaTPI.Models;
 using InmobiliariaTPI.Repositories;
 using Microsoft.Extensions.Logging;
+using InmobiliariaTPI.Helpers;
 
 namespace InmobiliariaTPI.Services
 {
@@ -44,8 +45,7 @@ namespace InmobiliariaTPI.Services
                 return false;
             }
 
-            // comparacion simple (en produccion deberia ser con hash)
-            var success = usuario.Password == password;
+            var success = PasswordHelper.VerifyPassword(password, usuario.Password ?? string.Empty);
 
             if (success)
             {
@@ -70,7 +70,8 @@ namespace InmobiliariaTPI.Services
             if (string.IsNullOrWhiteSpace(usuario.Password))
                 throw new ArgumentException("La contraseña es obligatoria");
 
-            // en produccion, la contraseña deberia hashearse
+            usuario.Password = PasswordHelper.HashPassword(usuario.Password);
+
             usuario.FechaCreacion = DateTime.Now;
 
             return await base.CreateAsync(usuario);
@@ -89,6 +90,11 @@ namespace InmobiliariaTPI.Services
             if (existente.Email != usuario.Email &&
                 await _repository.ExisteEmailAsync(usuario.Email!))
                 throw new InvalidOperationException("Ya existe otro usuario con ese email");
+
+            if (usuario.Password != existente.Password)
+            {
+                usuario.Password = PasswordHelper.HashPassword(usuario.Password ?? string.Empty);
+            }
 
             usuario.FechaUltimaModificacion = DateTime.Now;
             await base.UpdateAsync(usuario);

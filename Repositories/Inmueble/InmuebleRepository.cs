@@ -7,7 +7,9 @@ namespace InmobiliariaTPI.Repositories
 {
     public class InmuebleRepository : BaseRepository<Inmueble>, IInmuebleRepository
     {
-        public InmuebleRepository(DatabaseHelper dbHelper, ILogger<Inmueble> logger)
+        public InmuebleRepository(
+            DatabaseHelper dbHelper,
+            ILogger<Inmueble> logger)
             : base(dbHelper, logger)
         {
         }
@@ -15,16 +17,29 @@ namespace InmobiliariaTPI.Repositories
         public override async Task<IEnumerable<Inmueble>> GetAllAsync()
         {
             _logger.LogInformation("Obteniendo todos los inmuebles");
+
             var inmuebles = new List<Inmueble>();
-            var query = @"SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
-                                 i.precio_por_dia, i.imagen_portada, i.disponible, 
-                                 i.porcentaje_reserva, i.fecha_creacion, 
-                                 i.id_propietario, i.id_tipo_inmueble,
-                                 p.nombre_completo AS PropietarioNombre,
-                                 t.nombre AS TipoNombre
-                          FROM inmueble i
-                          LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
-                          LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble";
+
+            var query = @"
+                SELECT 
+                    i.id_inmueble,
+                    i.direccion,
+                    i.cupo_maximo,
+                    i.coordenadas,
+                    i.precio_por_dia,
+                    i.imagen_portada,
+                    i.disponible,
+                    i.porcentaje_reserva,
+                    i.fecha_creacion,
+                    i.id_propietario,
+                    i.id_tipo_inmueble,
+                    p.nombre_completo AS PropietarioNombre,
+                    t.nombre AS TipoNombre
+                FROM inmueble i
+                LEFT JOIN propietario p 
+                    ON i.id_propietario = p.id_propietario
+                LEFT JOIN tipo_inmueble t 
+                    ON i.id_tipo_inmueble = t.id_tipo_inmueble";
 
             using (var reader = await _dbHelper.ExecuteReaderAsync(query))
             {
@@ -43,10 +58,12 @@ namespace InmobiliariaTPI.Repositories
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
                         IdTipoInmueble = reader.GetInt32(10),
+
                         Propietario = new Propietario
                         {
                             NombreCompleto = reader.GetString(11)
                         },
+
                         TipoInmueble = new TipoInmueble
                         {
                             Nombre = reader.GetString(12)
@@ -54,24 +71,46 @@ namespace InmobiliariaTPI.Repositories
                     });
                 }
             }
-            _logger.LogInformation("Se obtuvieron {Count} inmuebles", inmuebles.Count);
+
+            _logger.LogInformation(
+                "Se obtuvieron {Count} inmuebles",
+                inmuebles.Count);
+
             return inmuebles;
         }
 
         public override async Task<Inmueble?> GetByIdAsync(int id)
         {
-            _logger.LogInformation("Buscando inmueble por ID: {Id}", id);
-            var query = @"SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
-                                 i.precio_por_dia, i.imagen_portada, i.disponible, 
-                                 i.porcentaje_reserva, i.fecha_creacion, 
-                                 i.id_propietario, i.id_tipo_inmueble,
-                                 p.nombre_completo AS PropietarioNombre,
-                                 t.nombre AS TipoNombre
-                          FROM inmueble i
-                          LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
-                          LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble
-                          WHERE i.id_inmueble = @Id";
-            var parameters = new MySqlParameter[] { new MySqlParameter("@Id", id) };
+            _logger.LogInformation(
+                "Buscando inmueble por ID: {Id}",
+                id);
+
+            var query = @"
+                SELECT 
+                    i.id_inmueble,
+                    i.direccion,
+                    i.cupo_maximo,
+                    i.coordenadas,
+                    i.precio_por_dia,
+                    i.imagen_portada,
+                    i.disponible,
+                    i.porcentaje_reserva,
+                    i.fecha_creacion,
+                    i.id_propietario,
+                    i.id_tipo_inmueble,
+                    p.nombre_completo AS PropietarioNombre,
+                    t.nombre AS TipoNombre
+                FROM inmueble i
+                LEFT JOIN propietario p 
+                    ON i.id_propietario = p.id_propietario
+                LEFT JOIN tipo_inmueble t 
+                    ON i.id_tipo_inmueble = t.id_tipo_inmueble
+                WHERE i.id_inmueble = @Id";
+
+            var parameters = new MySqlParameter[]
+            {
+                new MySqlParameter("@Id", id)
+            };
 
             using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters))
             {
@@ -90,40 +129,78 @@ namespace InmobiliariaTPI.Repositories
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
                         IdTipoInmueble = reader.GetInt32(10),
+
                         Propietario = new Propietario
                         {
                             NombreCompleto = reader.GetString(11)
                         },
+
                         TipoInmueble = new TipoInmueble
                         {
                             Nombre = reader.GetString(12)
                         }
                     };
                 }
-                _logger.LogWarning("Inmueble con ID: {Id} no encontrado", id);
+
+                _logger.LogWarning(
+                    "Inmueble con ID: {Id} no encontrado",
+                    id);
+
                 return null;
             }
         }
 
         public override async Task<int> CreateAsync(Inmueble inmueble)
         {
-            _logger.LogInformation("Creando nuevo inmueble - Direccion: {Direccion}", inmueble.Direccion);
-            var query = @"INSERT INTO inmueble 
-                        (direccion, cupo_maximo, coordenadas, precio_por_dia, 
-                         imagen_portada, disponible, porcentaje_reserva, 
-                         fecha_creacion, id_propietario, id_tipo_inmueble) 
-                        VALUES (@Direccion, @CupoMaximo, @Coordenadas, @PrecioPorDia, 
-                                @ImagenPortada, @Disponible, @PorcentajeReserva, 
-                                @FechaCreacion, @IdPropietario, @IdTipoInmueble);
-                        SELECT LAST_INSERT_ID();";
+            _logger.LogInformation(
+                "Creando nuevo inmueble - Direccion: {Direccion}",
+                inmueble.Direccion);
+
+            var query = @"
+                INSERT INTO inmueble
+                (
+                    direccion,
+                    cupo_maximo,
+                    coordenadas,
+                    precio_por_dia,
+                    imagen_portada,
+                    disponible,
+                    porcentaje_reserva,
+                    fecha_creacion,
+                    id_propietario,
+                    id_tipo_inmueble
+                )
+                VALUES
+                (
+                    @Direccion,
+                    @CupoMaximo,
+                    @Coordenadas,
+                    @PrecioPorDia,
+                    @ImagenPortada,
+                    @Disponible,
+                    @PorcentajeReserva,
+                    @FechaCreacion,
+                    @IdPropietario,
+                    @IdTipoInmueble
+                );
+
+                SELECT LAST_INSERT_ID();";
 
             var parameters = new MySqlParameter[]
             {
                 new MySqlParameter("@Direccion", inmueble.Direccion),
                 new MySqlParameter("@CupoMaximo", inmueble.CupoMaximo),
-                new MySqlParameter("@Coordenadas", string.IsNullOrEmpty(inmueble.Coordenadas) ? (object)DBNull.Value : inmueble.Coordenadas),
+                new MySqlParameter(
+                    "@Coordenadas",
+                    string.IsNullOrEmpty(inmueble.Coordenadas)
+                        ? (object)DBNull.Value
+                        : inmueble.Coordenadas),
                 new MySqlParameter("@PrecioPorDia", inmueble.PrecioPorDia),
-                new MySqlParameter("@ImagenPortada", string.IsNullOrEmpty(inmueble.ImagenPortada) ? (object)DBNull.Value : inmueble.ImagenPortada),
+                new MySqlParameter(
+                    "@ImagenPortada",
+                    string.IsNullOrEmpty(inmueble.ImagenPortada)
+                        ? (object)DBNull.Value
+                        : inmueble.ImagenPortada),
                 new MySqlParameter("@Disponible", inmueble.Disponible),
                 new MySqlParameter("@PorcentajeReserva", inmueble.PorcentajeReserva),
                 new MySqlParameter("@FechaCreacion", inmueble.FechaCreacion),
@@ -131,85 +208,179 @@ namespace InmobiliariaTPI.Repositories
                 new MySqlParameter("@IdTipoInmueble", inmueble.IdTipoInmueble)
             };
 
-            var result = await _dbHelper.ExecuteScalarAsync(query, parameters);
-            var id = result != null ? Convert.ToInt32(result) : 0;
-            _logger.LogInformation("Inmueble creado con ID: {Id}", id);
+            var result = await _dbHelper.ExecuteScalarAsync(
+                query,
+                parameters);
+
+            var id = result != null
+                ? Convert.ToInt32(result)
+                : 0;
+
+            _logger.LogInformation(
+                "Inmueble creado con ID: {Id}",
+                id);
+
             return id;
         }
 
         public override async Task UpdateAsync(Inmueble inmueble)
         {
-            _logger.LogInformation("Actualizando inmueble ID: {Id}", inmueble.Id);
-            var query = @"UPDATE inmueble 
-                        SET direccion = @Direccion, 
-                            cupo_maximo = @CupoMaximo, 
-                            coordenadas = @Coordenadas, 
-                            precio_por_dia = @PrecioPorDia, 
-                            imagen_portada = @ImagenPortada, 
-                            disponible = @Disponible, 
-                            porcentaje_reserva = @PorcentajeReserva, 
-                            id_propietario = @IdPropietario, 
-                            id_tipo_inmueble = @IdTipoInmueble 
-                        WHERE id_inmueble = @Id";
+            _logger.LogInformation(
+                "Actualizando inmueble ID: {Id}",
+                inmueble.Id);
+
+            var query = @"
+                UPDATE inmueble
+                SET
+                    direccion = @Direccion,
+                    cupo_maximo = @CupoMaximo,
+                    coordenadas = @Coordenadas,
+                    precio_por_dia = @PrecioPorDia,
+                    imagen_portada = @ImagenPortada,
+                    disponible = @Disponible,
+                    porcentaje_reserva = @PorcentajeReserva,
+                    id_propietario = @IdPropietario,
+                    id_tipo_inmueble = @IdTipoInmueble
+                WHERE id_inmueble = @Id";
 
             var parameters = new MySqlParameter[]
             {
                 new MySqlParameter("@Id", inmueble.Id),
                 new MySqlParameter("@Direccion", inmueble.Direccion),
                 new MySqlParameter("@CupoMaximo", inmueble.CupoMaximo),
-                new MySqlParameter("@Coordenadas", string.IsNullOrEmpty(inmueble.Coordenadas) ? (object)DBNull.Value : inmueble.Coordenadas),
+                new MySqlParameter(
+                    "@Coordenadas",
+                    string.IsNullOrEmpty(inmueble.Coordenadas)
+                        ? (object)DBNull.Value
+                        : inmueble.Coordenadas),
                 new MySqlParameter("@PrecioPorDia", inmueble.PrecioPorDia),
-                new MySqlParameter("@ImagenPortada", string.IsNullOrEmpty(inmueble.ImagenPortada) ? (object)DBNull.Value : inmueble.ImagenPortada),
+                new MySqlParameter(
+                    "@ImagenPortada",
+                    string.IsNullOrEmpty(inmueble.ImagenPortada)
+                        ? (object)DBNull.Value
+                        : inmueble.ImagenPortada),
                 new MySqlParameter("@Disponible", inmueble.Disponible),
                 new MySqlParameter("@PorcentajeReserva", inmueble.PorcentajeReserva),
                 new MySqlParameter("@IdPropietario", inmueble.IdPropietario),
                 new MySqlParameter("@IdTipoInmueble", inmueble.IdTipoInmueble)
             };
 
-            await _dbHelper.ExecuteNonQueryAsync(query, parameters);
-            _logger.LogInformation("Inmueble ID: {Id} actualizado correctamente", inmueble.Id);
+            await _dbHelper.ExecuteNonQueryAsync(
+                query,
+                parameters);
+
+            _logger.LogInformation(
+                "Inmueble ID: {Id} actualizado correctamente",
+                inmueble.Id);
         }
 
         public override async Task DeleteAsync(int id)
         {
-            _logger.LogInformation("Eliminando inmueble ID: {Id}", id);
-            var query = "DELETE FROM inmueble WHERE id_inmueble = @Id";
-            var parameters = new MySqlParameter[] { new MySqlParameter("@Id", id) };
-            await _dbHelper.ExecuteNonQueryAsync(query, parameters);
-            _logger.LogInformation("Inmueble ID: {Id} eliminado correctamente", id);
+            _logger.LogInformation(
+                "Eliminando inmueble ID: {Id}",
+                id);
+
+            var query = @"
+                DELETE FROM inmueble
+                WHERE id_inmueble = @Id";
+
+            var parameters = new MySqlParameter[]
+            {
+                new MySqlParameter("@Id", id)
+            };
+
+            await _dbHelper.ExecuteNonQueryAsync(
+                query,
+                parameters);
+
+            _logger.LogInformation(
+                "Inmueble ID: {Id} eliminado correctamente",
+                id);
         }
 
-        // obtiene inmuebles paginados
-        public override async Task<IEnumerable<Inmueble>> GetPagedAsync(int page, int pageSize, string? searchTerm = null, bool soloDisponibles = false)
+        // Obtiene inmuebles paginados
+        public override async Task<IEnumerable<Inmueble>> GetPagedAsync(
+            int page,
+            int pageSize,
+            string? searchTerm = null,
+            bool soloDisponibles = false)
         {
-            _logger.LogInformation("Obteniendo inmuebles paginados - Pagina: {Page}, Tamano: {PageSize}", page, pageSize);
+            _logger.LogInformation(
+                "Obteniendo inmuebles paginados - Pagina: {Page}, Tamano: {PageSize}",
+                page,
+                pageSize);
 
             var inmuebles = new List<Inmueble>();
+
             var offset = (page - 1) * pageSize;
 
-            var query = @"SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
-                                 i.precio_por_dia, i.imagen_portada, i.disponible, 
-                                 i.porcentaje_reserva, i.fecha_creacion, 
-                                 i.id_propietario, i.id_tipo_inmueble,
-                                 p.nombre_completo AS PropietarioNombre,
-                                 t.nombre AS TipoNombre
-                          FROM inmueble i
-                          LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
-                          LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble";
+            var query = @"
+                SELECT
+                    i.id_inmueble,
+                    i.direccion,
+                    i.cupo_maximo,
+                    i.coordenadas,
+                    i.precio_por_dia,
+                    i.imagen_portada,
+                    i.disponible,
+                    i.porcentaje_reserva,
+                    i.fecha_creacion,
+                    i.id_propietario,
+                    i.id_tipo_inmueble,
+                    p.nombre_completo AS PropietarioNombre,
+                    t.nombre AS TipoNombre
+                FROM inmueble i
+                LEFT JOIN propietario p
+                    ON i.id_propietario = p.id_propietario
+                LEFT JOIN tipo_inmueble t
+                    ON i.id_tipo_inmueble = t.id_tipo_inmueble";
 
             var parameters = new List<MySqlParameter>();
 
+            // Filtro de búsqueda
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query += " WHERE i.direccion LIKE @SearchTerm OR i.coordenadas LIKE @SearchTerm";
-                parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
+                query += @"
+                    WHERE (
+                        i.direccion LIKE @SearchTerm
+                        OR i.coordenadas LIKE @SearchTerm
+                        OR t.nombre LIKE @SearchTerm
+                        OR p.nombre_completo LIKE @SearchTerm
+                    )";
+
+                parameters.Add(
+                    new MySqlParameter(
+                        "@SearchTerm",
+                        $"%{searchTerm}%"));
             }
 
-            query += " ORDER BY i.id_inmueble DESC LIMIT @PageSize OFFSET @Offset";
-            parameters.Add(new MySqlParameter("@PageSize", pageSize));
-            parameters.Add(new MySqlParameter("@Offset", offset));
+            // Filtro de disponibilidad
+            if (soloDisponibles)
+            {
+                if (query.Contains("WHERE"))
+                {
+                    query += " AND i.disponible = true";
+                }
+                else
+                {
+                    query += " WHERE i.disponible = true";
+                }
+            }
 
-            using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters.ToArray()))
+            query += @"
+                ORDER BY i.id_inmueble DESC
+                LIMIT @PageSize
+                OFFSET @Offset";
+
+            parameters.Add(
+                new MySqlParameter("@PageSize", pageSize));
+
+            parameters.Add(
+                new MySqlParameter("@Offset", offset));
+
+            using (var reader = await _dbHelper.ExecuteReaderAsync(
+                query,
+                parameters.ToArray()))
             {
                 while (await reader.ReadAsync())
                 {
@@ -218,18 +389,24 @@ namespace InmobiliariaTPI.Repositories
                         Id = reader.GetInt32(0),
                         Direccion = reader.GetString(1),
                         CupoMaximo = reader.GetInt32(2),
-                        Coordenadas = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                        Coordenadas = reader.IsDBNull(3)
+                            ? string.Empty
+                            : reader.GetString(3),
                         PrecioPorDia = reader.GetDecimal(4),
-                        ImagenPortada = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                        ImagenPortada = reader.IsDBNull(5)
+                            ? string.Empty
+                            : reader.GetString(5),
                         Disponible = reader.GetBoolean(6),
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
                         IdTipoInmueble = reader.GetInt32(10),
+
                         Propietario = new Propietario
                         {
                             NombreCompleto = reader.GetString(11)
                         },
+
                         TipoInmueble = new TipoInmueble
                         {
                             Nombre = reader.GetString(12)
@@ -238,47 +415,103 @@ namespace InmobiliariaTPI.Repositories
                 }
             }
 
-            _logger.LogInformation("Se obtuvieron {Count} inmuebles", inmuebles.Count);
+            _logger.LogInformation(
+                "Se obtuvieron {Count} inmuebles",
+                inmuebles.Count);
+
             return inmuebles;
         }
 
-        // obtiene el total de inmuebles para paginacion
-        public override async Task<int> GetTotalCountAsync(string? searchTerm = null, bool soloDisponibles = false)
+        // Obtiene el total de inmuebles para paginacion
+        public override async Task<int> GetTotalCountAsync(
+     string? searchTerm = null,
+     bool soloDisponibles = false)
         {
             _logger.LogInformation("Obteniendo total de inmuebles");
 
-            var query = "SELECT COUNT(1) FROM inmueble";
+            var query = @"
+        SELECT COUNT(1)
+        FROM inmueble i
+        LEFT JOIN propietario p
+            ON i.id_propietario = p.id_propietario
+        LEFT JOIN tipo_inmueble t
+            ON i.id_tipo_inmueble = t.id_tipo_inmueble";
+
             var parameters = new List<MySqlParameter>();
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query += " WHERE direccion LIKE @SearchTerm OR coordenadas LIKE @SearchTerm";
-                parameters.Add(new MySqlParameter("@SearchTerm", $"%{searchTerm}%"));
+                query += @"
+                    WHERE (
+                        i.direccion LIKE @SearchTerm
+                        OR i.coordenadas LIKE @SearchTerm
+                        OR t.nombre LIKE @SearchTerm
+                        OR p.nombre_completo LIKE @SearchTerm
+                    )";
+
+                parameters.Add(
+                    new MySqlParameter(
+                        "@SearchTerm",
+                        $"%{searchTerm}%"));
             }
 
-            var result = await _dbHelper.ExecuteScalarAsync(query, parameters.ToArray());
-            return result != null ? Convert.ToInt32(result) : 0;
+            if (soloDisponibles)
+            {
+                if (query.Contains("WHERE"))
+                    query += " AND i.disponible = true";
+                else
+                    query += " WHERE i.disponible = true";
+            }
+
+            var result = await _dbHelper.ExecuteScalarAsync(
+                query,
+                parameters.ToArray());
+
+            return result != null
+                ? Convert.ToInt32(result)
+                : 0;
         }
 
-        // obtiene inmuebles de un propietario
-        public async Task<IEnumerable<Inmueble>> GetByPropietarioIdAsync(int propietarioId)
+        // Obtiene inmuebles de un propietario
+        public async Task<IEnumerable<Inmueble>> GetByPropietarioIdAsync(
+            int propietarioId)
         {
-            _logger.LogInformation("Obteniendo inmuebles del propietario ID: {PropietarioId}", propietarioId);
+            _logger.LogInformation(
+                "Obteniendo inmuebles del propietario ID: {PropietarioId}",
+                propietarioId);
+
             var inmuebles = new List<Inmueble>();
-            var query = @"SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
-                                 i.precio_por_dia, i.imagen_portada, i.disponible, 
-                                 i.porcentaje_reserva, i.fecha_creacion, 
-                                 i.id_propietario, i.id_tipo_inmueble,
-                                 p.nombre_completo AS PropietarioNombre,
-                                 t.nombre AS TipoNombre
-                          FROM inmueble i
-                          LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
-                          LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble
-                          WHERE i.id_propietario = @PropietarioId";
 
-            var parameters = new MySqlParameter[] { new MySqlParameter("@PropietarioId", propietarioId) };
+            var query = @"
+                SELECT
+                    i.id_inmueble,
+                    i.direccion,
+                    i.cupo_maximo,
+                    i.coordenadas,
+                    i.precio_por_dia,
+                    i.imagen_portada,
+                    i.disponible,
+                    i.porcentaje_reserva,
+                    i.fecha_creacion,
+                    i.id_propietario,
+                    i.id_tipo_inmueble,
+                    p.nombre_completo AS PropietarioNombre,
+                    t.nombre AS TipoNombre
+                FROM inmueble i
+                LEFT JOIN propietario p
+                    ON i.id_propietario = p.id_propietario
+                LEFT JOIN tipo_inmueble t
+                    ON i.id_tipo_inmueble = t.id_tipo_inmueble
+                WHERE i.id_propietario = @PropietarioId";
 
-            using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters))
+            var parameters = new MySqlParameter[]
+            {
+                new MySqlParameter("@PropietarioId", propietarioId)
+            };
+
+            using (var reader = await _dbHelper.ExecuteReaderAsync(
+                query,
+                parameters))
             {
                 while (await reader.ReadAsync())
                 {
@@ -287,18 +520,24 @@ namespace InmobiliariaTPI.Repositories
                         Id = reader.GetInt32(0),
                         Direccion = reader.GetString(1),
                         CupoMaximo = reader.GetInt32(2),
-                        Coordenadas = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                        Coordenadas = reader.IsDBNull(3)
+                            ? string.Empty
+                            : reader.GetString(3),
                         PrecioPorDia = reader.GetDecimal(4),
-                        ImagenPortada = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                        ImagenPortada = reader.IsDBNull(5)
+                            ? string.Empty
+                            : reader.GetString(5),
                         Disponible = reader.GetBoolean(6),
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
                         IdTipoInmueble = reader.GetInt32(10),
+
                         Propietario = new Propietario
                         {
                             NombreCompleto = reader.GetString(11)
                         },
+
                         TipoInmueble = new TipoInmueble
                         {
                             Nombre = reader.GetString(12)
@@ -306,25 +545,44 @@ namespace InmobiliariaTPI.Repositories
                     });
                 }
             }
-            _logger.LogInformation("Se obtuvieron {Count} inmuebles para el propietario {PropietarioId}", inmuebles.Count, propietarioId);
+
+            _logger.LogInformation(
+                "Se obtuvieron {Count} inmuebles para el propietario {PropietarioId}",
+                inmuebles.Count,
+                propietarioId);
+
             return inmuebles;
         }
 
-        // solo inmuebles disponibles
+        // Solo inmuebles disponibles
         public async Task<IEnumerable<Inmueble>> GetDisponiblesAsync()
         {
-            _logger.LogInformation("Obteniendo inmuebles disponibles");
+            _logger.LogInformation(
+                "Obteniendo inmuebles disponibles");
+
             var inmuebles = new List<Inmueble>();
-            var query = @"SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
-                                 i.precio_por_dia, i.imagen_portada, i.disponible, 
-                                 i.porcentaje_reserva, i.fecha_creacion, 
-                                 i.id_propietario, i.id_tipo_inmueble,
-                                 p.nombre_completo AS PropietarioNombre,
-                                 t.nombre AS TipoNombre
-                          FROM inmueble i
-                          LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
-                          LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble
-                          WHERE i.disponible = true";
+
+            var query = @"
+                SELECT
+                    i.id_inmueble,
+                    i.direccion,
+                    i.cupo_maximo,
+                    i.coordenadas,
+                    i.precio_por_dia,
+                    i.imagen_portada,
+                    i.disponible,
+                    i.porcentaje_reserva,
+                    i.fecha_creacion,
+                    i.id_propietario,
+                    i.id_tipo_inmueble,
+                    p.nombre_completo AS PropietarioNombre,
+                    t.nombre AS TipoNombre
+                FROM inmueble i
+                LEFT JOIN propietario p
+                    ON i.id_propietario = p.id_propietario
+                LEFT JOIN tipo_inmueble t
+                    ON i.id_tipo_inmueble = t.id_tipo_inmueble
+                WHERE i.disponible = true";
 
             using (var reader = await _dbHelper.ExecuteReaderAsync(query))
             {
@@ -335,18 +593,24 @@ namespace InmobiliariaTPI.Repositories
                         Id = reader.GetInt32(0),
                         Direccion = reader.GetString(1),
                         CupoMaximo = reader.GetInt32(2),
-                        Coordenadas = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                        Coordenadas = reader.IsDBNull(3)
+                            ? string.Empty
+                            : reader.GetString(3),
                         PrecioPorDia = reader.GetDecimal(4),
-                        ImagenPortada = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                        ImagenPortada = reader.IsDBNull(5)
+                            ? string.Empty
+                            : reader.GetString(5),
                         Disponible = reader.GetBoolean(6),
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
                         IdTipoInmueble = reader.GetInt32(10),
+
                         Propietario = new Propietario
                         {
                             NombreCompleto = reader.GetString(11)
                         },
+
                         TipoInmueble = new TipoInmueble
                         {
                             Nombre = reader.GetString(12)
@@ -354,30 +618,53 @@ namespace InmobiliariaTPI.Repositories
                     });
                 }
             }
-            _logger.LogInformation("Se obtuvieron {Count} inmuebles disponibles", inmuebles.Count);
+
+            _logger.LogInformation(
+                "Se obtuvieron {Count} inmuebles disponibles",
+                inmuebles.Count);
+
             return inmuebles;
         }
 
-        // inmuebles disponibles en un rango de fechas
-        public async Task<IEnumerable<Inmueble>> GetDisponiblesEnFechasAsync(DateTime inicio, DateTime fin)
+        // Inmuebles disponibles en un rango de fechas
+        public async Task<IEnumerable<Inmueble>> GetDisponiblesEnFechasAsync(
+            DateTime inicio,
+            DateTime fin)
         {
-            _logger.LogInformation("Buscando inmuebles disponibles entre {Inicio} y {Fin}", inicio, fin);
+            _logger.LogInformation(
+                "Buscando inmuebles disponibles entre {Inicio} y {Fin}",
+                inicio,
+                fin);
+
             var inmuebles = new List<Inmueble>();
+
             var query = @"
-                SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
-                       i.precio_por_dia, i.imagen_portada, i.disponible, 
-                       i.porcentaje_reserva, i.fecha_creacion, 
-                       i.id_propietario, i.id_tipo_inmueble,
-                       p.nombre_completo AS PropietarioNombre,
-                       t.nombre AS TipoNombre
+                SELECT
+                    i.id_inmueble,
+                    i.direccion,
+                    i.cupo_maximo,
+                    i.coordenadas,
+                    i.precio_por_dia,
+                    i.imagen_portada,
+                    i.disponible,
+                    i.porcentaje_reserva,
+                    i.fecha_creacion,
+                    i.id_propietario,
+                    i.id_tipo_inmueble,
+                    p.nombre_completo AS PropietarioNombre,
+                    t.nombre AS TipoNombre
                 FROM inmueble i
-                LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
-                LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble
+                LEFT JOIN propietario p
+                    ON i.id_propietario = p.id_propietario
+                LEFT JOIN tipo_inmueble t
+                    ON i.id_tipo_inmueble = t.id_tipo_inmueble
                 WHERE i.disponible = true
-                AND NOT EXISTS (
-                    SELECT 1 FROM reserva r 
+                AND NOT EXISTS
+                (
+                    SELECT 1
+                    FROM reserva r
                     WHERE r.id_inmueble = i.id_inmueble
-                    AND r.fecha_inicio < @Fin 
+                    AND r.fecha_inicio < @Fin
                     AND r.fecha_fin > @Inicio
                 )";
 
@@ -387,7 +674,9 @@ namespace InmobiliariaTPI.Repositories
                 new MySqlParameter("@Fin", fin)
             };
 
-            using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters))
+            using (var reader = await _dbHelper.ExecuteReaderAsync(
+                query,
+                parameters))
             {
                 while (await reader.ReadAsync())
                 {
@@ -396,18 +685,24 @@ namespace InmobiliariaTPI.Repositories
                         Id = reader.GetInt32(0),
                         Direccion = reader.GetString(1),
                         CupoMaximo = reader.GetInt32(2),
-                        Coordenadas = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                        Coordenadas = reader.IsDBNull(3)
+                            ? string.Empty
+                            : reader.GetString(3),
                         PrecioPorDia = reader.GetDecimal(4),
-                        ImagenPortada = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                        ImagenPortada = reader.IsDBNull(5)
+                            ? string.Empty
+                            : reader.GetString(5),
                         Disponible = reader.GetBoolean(6),
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
                         IdTipoInmueble = reader.GetInt32(10),
+
                         Propietario = new Propietario
                         {
                             NombreCompleto = reader.GetString(11)
                         },
+
                         TipoInmueble = new TipoInmueble
                         {
                             Nombre = reader.GetString(12)
@@ -415,35 +710,61 @@ namespace InmobiliariaTPI.Repositories
                     });
                 }
             }
-            _logger.LogInformation("Se encontraron {Count} inmuebles disponibles en esas fechas", inmuebles.Count);
+
+            _logger.LogInformation(
+                "Se encontraron {Count} inmuebles disponibles en esas fechas",
+                inmuebles.Count);
+
             return inmuebles;
         }
 
-        // inmuebles mas reservados (informe)
-        public async Task<IEnumerable<Inmueble>> GetMasReservadosAsync(int dias)
+        // Inmuebles mas reservados
+        public async Task<IEnumerable<Inmueble>> GetMasReservadosAsync(
+            int dias)
         {
-            _logger.LogInformation("Obteniendo inmuebles mas reservados en los ultimos {Dias} dias", dias);
+            _logger.LogInformation(
+                "Obteniendo inmuebles mas reservados en los ultimos {Dias} dias",
+                dias);
+
             var fechaLimite = DateTime.Now.AddDays(-dias);
+
             var inmuebles = new List<Inmueble>();
+
             var query = @"
-                SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
-                       i.precio_por_dia, i.imagen_portada, i.disponible, 
-                       i.porcentaje_reserva, i.fecha_creacion, 
-                       i.id_propietario, i.id_tipo_inmueble,
-                       p.nombre_completo AS PropietarioNombre,
-                       t.nombre AS TipoNombre,
-                       COUNT(r.id_reserva) as CantidadReservas
+                SELECT
+                    i.id_inmueble,
+                    i.direccion,
+                    i.cupo_maximo,
+                    i.coordenadas,
+                    i.precio_por_dia,
+                    i.imagen_portada,
+                    i.disponible,
+                    i.porcentaje_reserva,
+                    i.fecha_creacion,
+                    i.id_propietario,
+                    i.id_tipo_inmueble,
+                    p.nombre_completo AS PropietarioNombre,
+                    t.nombre AS TipoNombre,
+                    COUNT(r.id_reserva) AS CantidadReservas
                 FROM inmueble i
-                LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
-                LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble
-                INNER JOIN reserva r ON i.id_inmueble = r.id_inmueble
+                LEFT JOIN propietario p
+                    ON i.id_propietario = p.id_propietario
+                LEFT JOIN tipo_inmueble t
+                    ON i.id_tipo_inmueble = t.id_tipo_inmueble
+                INNER JOIN reserva r
+                    ON i.id_inmueble = r.id_inmueble
                 WHERE r.fecha_creacion >= @FechaLimite
                 GROUP BY i.id_inmueble
                 ORDER BY CantidadReservas DESC";
 
-            var parameters = new MySqlParameter[] { new MySqlParameter("@FechaLimite", fechaLimite) };
+            var parameters = new MySqlParameter[]
+            {
+                new MySqlParameter("@FechaLimite", fechaLimite)
+            };
 
-            using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters))
+            using (var reader = await _dbHelper.ExecuteReaderAsync(
+                query,
+                parameters))
             {
                 while (await reader.ReadAsync())
                 {
@@ -452,18 +773,24 @@ namespace InmobiliariaTPI.Repositories
                         Id = reader.GetInt32(0),
                         Direccion = reader.GetString(1),
                         CupoMaximo = reader.GetInt32(2),
-                        Coordenadas = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                        Coordenadas = reader.IsDBNull(3)
+                            ? string.Empty
+                            : reader.GetString(3),
                         PrecioPorDia = reader.GetDecimal(4),
-                        ImagenPortada = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                        ImagenPortada = reader.IsDBNull(5)
+                            ? string.Empty
+                            : reader.GetString(5),
                         Disponible = reader.GetBoolean(6),
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
                         IdTipoInmueble = reader.GetInt32(10),
+
                         Propietario = new Propietario
                         {
                             NombreCompleto = reader.GetString(11)
                         },
+
                         TipoInmueble = new TipoInmueble
                         {
                             Nombre = reader.GetString(12)
@@ -471,33 +798,59 @@ namespace InmobiliariaTPI.Repositories
                     });
                 }
             }
-            _logger.LogInformation("Se obtuvieron {Count} inmuebles mas reservados", inmuebles.Count);
+
+            _logger.LogInformation(
+                "Se obtuvieron {Count} inmuebles mas reservados",
+                inmuebles.Count);
+
             return inmuebles;
         }
 
-        // inmuebles sin reservas (informe)
-        public async Task<IEnumerable<Inmueble>> GetSinReservasAsync(int dias)
+        // Inmuebles sin reservas
+        public async Task<IEnumerable<Inmueble>> GetSinReservasAsync(
+            int dias)
         {
-            _logger.LogInformation("Obteniendo inmuebles sin reservas en los ultimos {Dias} dias", dias);
+            _logger.LogInformation(
+                "Obteniendo inmuebles sin reservas en los ultimos {Dias} dias",
+                dias);
+
             var fechaLimite = DateTime.Now.AddDays(-dias);
+
             var inmuebles = new List<Inmueble>();
+
             var query = @"
-                SELECT i.id_inmueble, i.direccion, i.cupo_maximo, i.coordenadas, 
-                       i.precio_por_dia, i.imagen_portada, i.disponible, 
-                       i.porcentaje_reserva, i.fecha_creacion, 
-                       i.id_propietario, i.id_tipo_inmueble,
-                       p.nombre_completo AS PropietarioNombre,
-                       t.nombre AS TipoNombre
+                SELECT
+                    i.id_inmueble,
+                    i.direccion,
+                    i.cupo_maximo,
+                    i.coordenadas,
+                    i.precio_por_dia,
+                    i.imagen_portada,
+                    i.disponible,
+                    i.porcentaje_reserva,
+                    i.fecha_creacion,
+                    i.id_propietario,
+                    i.id_tipo_inmueble,
+                    p.nombre_completo AS PropietarioNombre,
+                    t.nombre AS TipoNombre
                 FROM inmueble i
-                LEFT JOIN propietario p ON i.id_propietario = p.id_propietario
-                LEFT JOIN tipo_inmueble t ON i.id_tipo_inmueble = t.id_tipo_inmueble
-                LEFT JOIN reserva r ON i.id_inmueble = r.id_inmueble 
+                LEFT JOIN propietario p
+                    ON i.id_propietario = p.id_propietario
+                LEFT JOIN tipo_inmueble t
+                    ON i.id_tipo_inmueble = t.id_tipo_inmueble
+                LEFT JOIN reserva r
+                    ON i.id_inmueble = r.id_inmueble
                     AND r.fecha_creacion >= @FechaLimite
                 WHERE r.id_reserva IS NULL";
 
-            var parameters = new MySqlParameter[] { new MySqlParameter("@FechaLimite", fechaLimite) };
+            var parameters = new MySqlParameter[]
+            {
+                new MySqlParameter("@FechaLimite", fechaLimite)
+            };
 
-            using (var reader = await _dbHelper.ExecuteReaderAsync(query, parameters))
+            using (var reader = await _dbHelper.ExecuteReaderAsync(
+                query,
+                parameters))
             {
                 while (await reader.ReadAsync())
                 {
@@ -506,18 +859,24 @@ namespace InmobiliariaTPI.Repositories
                         Id = reader.GetInt32(0),
                         Direccion = reader.GetString(1),
                         CupoMaximo = reader.GetInt32(2),
-                        Coordenadas = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                        Coordenadas = reader.IsDBNull(3)
+                            ? string.Empty
+                            : reader.GetString(3),
                         PrecioPorDia = reader.GetDecimal(4),
-                        ImagenPortada = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                        ImagenPortada = reader.IsDBNull(5)
+                            ? string.Empty
+                            : reader.GetString(5),
                         Disponible = reader.GetBoolean(6),
                         PorcentajeReserva = reader.GetInt32(7),
                         FechaCreacion = reader.GetDateTime(8),
                         IdPropietario = reader.GetInt32(9),
                         IdTipoInmueble = reader.GetInt32(10),
+
                         Propietario = new Propietario
                         {
                             NombreCompleto = reader.GetString(11)
                         },
+
                         TipoInmueble = new TipoInmueble
                         {
                             Nombre = reader.GetString(12)
@@ -525,18 +884,31 @@ namespace InmobiliariaTPI.Repositories
                     });
                 }
             }
-            _logger.LogInformation("Se obtuvieron {Count} inmuebles sin reservas", inmuebles.Count);
+
+            _logger.LogInformation(
+                "Se obtuvieron {Count} inmuebles sin reservas",
+                inmuebles.Count);
+
             return inmuebles;
         }
 
-        // verifica disponibilidad en fechas para una reserva
-        public async Task<bool> EstaDisponibleEnFechasAsync(int inmuebleId, DateTime inicio, DateTime fin)
+        // Verifica disponibilidad en fechas para una reserva
+        public async Task<bool> EstaDisponibleEnFechasAsync(
+            int inmuebleId,
+            DateTime inicio,
+            DateTime fin)
         {
-            _logger.LogInformation("Verificando disponibilidad del inmueble {InmuebleId} entre {Inicio} y {Fin}", inmuebleId, inicio, fin);
+            _logger.LogInformation(
+                "Verificando disponibilidad del inmueble {InmuebleId} entre {Inicio} y {Fin}",
+                inmuebleId,
+                inicio,
+                fin);
+
             var query = @"
-                SELECT COUNT(1) FROM reserva 
+                SELECT COUNT(1)
+                FROM reserva
                 WHERE id_inmueble = @Id
-                AND fecha_inicio < @Fin 
+                AND fecha_inicio < @Fin
                 AND fecha_fin > @Inicio";
 
             var parameters = new MySqlParameter[]
@@ -546,42 +918,103 @@ namespace InmobiliariaTPI.Repositories
                 new MySqlParameter("@Fin", fin)
             };
 
-            var result = await _dbHelper.ExecuteScalarAsync(query, parameters);
-            var count = result != null ? Convert.ToInt32(result) : 0;
+            var result = await _dbHelper.ExecuteScalarAsync(
+                query,
+                parameters);
+
+            var count = result != null
+                ? Convert.ToInt32(result)
+                : 0;
+
             var disponible = count == 0;
-            _logger.LogInformation("Inmueble {InmuebleId} disponible: {Disponible}", inmuebleId, disponible);
+
+            _logger.LogInformation(
+                "Inmueble {InmuebleId} disponible: {Disponible}",
+                inmuebleId,
+                disponible);
+
             return disponible;
         }
 
-        // valida que no exista la misma direccion
-        public async Task<bool> ExisteDireccionAsync(string direccion)
+        // Valida que no exista la misma direccion
+        public async Task<bool> ExisteDireccionAsync(
+            string direccion)
         {
-            _logger.LogInformation("Verificando si existe direccion: {Direccion}", direccion);
-            var query = "SELECT COUNT(1) FROM inmueble WHERE direccion = @Direccion";
-            var parameters = new MySqlParameter[] { new MySqlParameter("@Direccion", direccion) };
-            var result = await _dbHelper.ExecuteScalarAsync(query, parameters);
-            var count = result != null ? Convert.ToInt32(result) : 0;
+            _logger.LogInformation(
+                "Verificando si existe direccion: {Direccion}",
+                direccion);
+
+            var query = @"
+                SELECT COUNT(1)
+                FROM inmueble
+                WHERE direccion = @Direccion";
+
+            var parameters = new MySqlParameter[]
+            {
+                new MySqlParameter("@Direccion", direccion)
+            };
+
+            var result = await _dbHelper.ExecuteScalarAsync(
+                query,
+                parameters);
+
+            var count = result != null
+                ? Convert.ToInt32(result)
+                : 0;
+
             return count > 0;
         }
 
-        // suspende inmueble (no aparece en listados)
+        // Suspende inmueble
         public async Task SuspenderAsync(int id)
         {
-            _logger.LogInformation("Suspendiendo inmueble ID: {Id}", id);
-            var query = "UPDATE inmueble SET disponible = false WHERE id_inmueble = @Id";
-            var parameters = new MySqlParameter[] { new MySqlParameter("@Id", id) };
-            await _dbHelper.ExecuteNonQueryAsync(query, parameters);
-            _logger.LogInformation("Inmueble ID: {Id} suspendido", id);
+            _logger.LogInformation(
+                "Suspendiendo inmueble ID: {Id}",
+                id);
+
+            var query = @"
+                UPDATE inmueble
+                SET disponible = false
+                WHERE id_inmueble = @Id";
+
+            var parameters = new MySqlParameter[]
+            {
+                new MySqlParameter("@Id", id)
+            };
+
+            await _dbHelper.ExecuteNonQueryAsync(
+                query,
+                parameters);
+
+            _logger.LogInformation(
+                "Inmueble ID: {Id} suspendido",
+                id);
         }
 
-        // reactiva inmueble
+        // Reactiva inmueble
         public async Task ActivarAsync(int id)
         {
-            _logger.LogInformation("Activando inmueble ID: {Id}", id);
-            var query = "UPDATE inmueble SET disponible = true WHERE id_inmueble = @Id";
-            var parameters = new MySqlParameter[] { new MySqlParameter("@Id", id) };
-            await _dbHelper.ExecuteNonQueryAsync(query, parameters);
-            _logger.LogInformation("Inmueble ID: {Id} activado", id);
+            _logger.LogInformation(
+                "Activando inmueble ID: {Id}",
+                id);
+
+            var query = @"
+                UPDATE inmueble
+                SET disponible = true
+                WHERE id_inmueble = @Id";
+
+            var parameters = new MySqlParameter[]
+            {
+                new MySqlParameter("@Id", id)
+            };
+
+            await _dbHelper.ExecuteNonQueryAsync(
+                query,
+                parameters);
+
+            _logger.LogInformation(
+                "Inmueble ID: {Id} activado",
+                id);
         }
     }
 }

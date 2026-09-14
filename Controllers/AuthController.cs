@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using InmobiliariaTPI.Helpers;  
 
 namespace InmobiliariaTPI.Controllers
 {
@@ -52,7 +53,7 @@ namespace InmobiliariaTPI.Controllers
             }
 
             // verificar contraseña
-            if (usuario.Password != password)
+            if (!PasswordHelper.VerifyPassword(password, usuario.Password ?? string.Empty))
             {
                 _logger.LogWarning("Contraseña incorrecta para: {Email}", email);
                 ModelState.AddModelError("", "Email o contraseña incorrectos");

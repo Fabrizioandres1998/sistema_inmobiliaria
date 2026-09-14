@@ -3,6 +3,7 @@ using InmobiliariaTPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using InmobiliariaTPI.Helpers;
 
 namespace InmobiliariaTPI.Controllers
 {
@@ -207,9 +208,7 @@ namespace InmobiliariaTPI.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ============================================================
         // ACCIONES DE PERFIL (cualquier usuario logueado)
-        // ============================================================
 
         // GET: Usuario/MiPerfil
         public async Task<IActionResult> MiPerfil()
@@ -259,8 +258,10 @@ namespace InmobiliariaTPI.Controllers
                     return Forbid();
                 }
 
-                // Mantener el rol original (no se puede cambiar desde el perfil)
+                // mantener el rol original (no se puede cambiar desde el perfil)
                 usuario.Rol = usuarioActual.Rol;
+                usuario.Email = usuarioActual.Email;
+                usuario.Password = usuarioActual.Password;
 
                 _logger.LogInformation("Actualizando perfil del usuario ID: {Id}", usuario.Id);
                 await _service.UpdateAsync(usuario);
@@ -304,7 +305,7 @@ namespace InmobiliariaTPI.Controllers
                 var usuario = await GetUsuarioActual();
                 if (usuario == null) return NotFound();
 
-                if (usuario.Password != passwordActual)
+                if (!PasswordHelper.VerifyPassword(passwordActual, usuario.Password ?? string.Empty))
                 {
                     ModelState.AddModelError("", "La contraseña actual es incorrecta");
                     return View();
@@ -323,11 +324,8 @@ namespace InmobiliariaTPI.Controllers
             }
         }
 
-        
 
-        // ============================================================
-        // MÉTODOS PRIVADOS
-        // ============================================================
+        // METODOS PRIVADOS
 
         private async Task<Usuario?> GetUsuarioActual()
         {
