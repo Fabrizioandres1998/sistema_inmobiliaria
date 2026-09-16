@@ -11,7 +11,7 @@ namespace InmobiliariaTPI.Services
         Task<IEnumerable<Reserva>> GetPorInquilinoAsync(int inquilinoId);
         Task<IPagedList<Reserva>> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm = null, bool soloVigentes = false);
         Task<bool> EstaOcupadoAsync(int inmuebleId, DateTime inicio, DateTime fin);
-        Task<bool> EstaOcupadoAsync(int inmuebleId, DateTime inicio, DateTime fin, int? reservaExcluirId); // ← AGREGAR ESTO
+        Task<bool> EstaOcupadoAsync(int inmuebleId, DateTime inicio, DateTime fin, int? reservaExcluirId); 
         Task FinalizarAsync(int id, DateTime fechaTerminacion, int idUsuarioTerminacion);
         Task<Reserva> RenovarAsync(Reserva nuevaReserva);
     }

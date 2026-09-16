@@ -74,6 +74,7 @@ namespace InmobiliariaTPI.Repositories
                          r.multa_aplicada, r.id_inquilino, r.id_inmueble, 
                          r.id_usuario_creador, r.id_usuario_terminacion,
                          i.direccion AS InmuebleDireccion,
+                          i.porcentaje_reserva AS InmueblePorcentaje, 
                          inq.nombre_completo AS InquilinoNombre,
                          uc.nombre_completo AS UsuarioCreadorNombre,
                          ut.nombre_completo AS UsuarioTerminacionNombre
@@ -107,22 +108,23 @@ namespace InmobiliariaTPI.Repositories
                         Inmueble = new Inmueble
                         {
                             Id = reader.GetInt32(10),
-                            Direccion = reader.GetString(13)
+                            Direccion = reader.GetString(13),
+                            PorcentajeReserva = reader.GetInt32(14)
                         },
                         Inquilino = new Inquilino
                         {
                             Id = reader.GetInt32(9),
-                            NombreCompleto = reader.GetString(14)
+                            NombreCompleto = reader.GetString(15)
                         },
                         UsuarioCreador = new Usuario
                         {
                             Id = reader.GetInt32(11),
-                            NombreCompleto = reader.IsDBNull(15) ? string.Empty : reader.GetString(15)
+                            NombreCompleto = reader.IsDBNull(16) ? string.Empty : reader.GetString(16)
                         },
                         UsuarioTerminacion = reader.IsDBNull(12) ? null : new Usuario
                         {
                             Id = reader.GetInt32(12),
-                            NombreCompleto = reader.IsDBNull(16) ? string.Empty : reader.GetString(16)
+                            NombreCompleto = reader.IsDBNull(17) ? string.Empty : reader.GetString(17)
                         }
                     };
                 }
@@ -386,6 +388,7 @@ namespace InmobiliariaTPI.Repositories
         // finaliza una reserva
         public async Task FinalizarAsync(int id, DateTime fechaTerminacion, decimal? multa, int idUsuarioTerminacion)
         {
+            _logger.LogInformation(">>> REPO: idUsuarioTerminacion={IdUsuario}", idUsuarioTerminacion);
             _logger.LogInformation("Finalizando reserva {Id} con multa de {Multa}", id, multa);
             var query = @"UPDATE reserva 
                         SET estado = 'FINALIZADA', 

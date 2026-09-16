@@ -12,5 +12,12 @@ namespace InmobiliariaTPI.ViewModels
 
         [Display(Name = "Multa Calculada")]
         public decimal MultaCalculada { get; set; }
+
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
+        public decimal MontoPorDia { get; set; }
+        public string? InmuebleDireccion { get; set; }
+        public string? InquilinoNombre { get; set; }
+        public int IdUsuarioTerminacion { get; set; }
     }
 }

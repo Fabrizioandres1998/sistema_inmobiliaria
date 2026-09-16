@@ -57,45 +57,44 @@ namespace InmobiliariaTPI.Controllers
             if (reserva == null)
                 return NotFound();
 
+            var pagos = await _pagoService.GetActivosByReservaIdAsync(reservaId);
+            var totalPagado = pagos.Sum(p => p.Importe);
+            var saldoPendiente = reserva.MontoTotal - totalPagado;
+
             var pago = new Pago
             {
                 IdReserva = reservaId,
-                FechaPago = DateTime.Now.Date
+                FechaPago = DateTime.Now.Date,
+                Importe = saldoPendiente > 0 ? saldoPendiente : 0
             };
+
+            ViewBag.Reserva = reserva;
+            ViewBag.TotalPagado = totalPagado;
+            ViewBag.SaldoPendiente = saldoPendiente;
 
             return View(pago);
         }
 
-        // POST: Pagos/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Pago pago)
         {
-            _logger.LogInformation("=== INICIO CREATE PAGO ===");
-            _logger.LogInformation("IdReserva: {IdReserva}", pago.IdReserva);
-            _logger.LogInformation("Concepto: {Concepto}", pago.Concepto);
-            _logger.LogInformation("Importe: {Importe}", pago.Importe);
-            _logger.LogInformation("FechaPago: {FechaPago}", pago.FechaPago);
-
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("ModelState inválido");
-                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    _logger.LogWarning("Error: {Error}", error.ErrorMessage);
-                }
-                TempData["Error"] = "Error al crear el pago. Verifique los datos.";
-                return RedirectToAction("Details", "Reservas", new { id = pago.IdReserva });
+                var reserva = await _reservaService.GetByIdAsync(pago.IdReserva);
+                var pagos = await _pagoService.GetActivosByReservaIdAsync(pago.IdReserva);
+                var totalPagado = pagos.Sum(p => p.Importe);
+                ViewBag.Reserva = reserva;
+                ViewBag.TotalPagado = totalPagado;
+                ViewBag.SaldoPendiente = (reserva?.MontoTotal ?? 0) - totalPagado;
+                return View(pago);
             }
 
             try
             {
                 var usuarioActual = await GetUsuarioActual();
-                _logger.LogInformation("Usuario actual: {Usuario}", usuarioActual?.Email ?? "null");
-
                 if (usuarioActual == null)
                 {
-                    _logger.LogWarning("Usuario no autenticado");
                     TempData["Error"] = "Usuario no autenticado";
                     return RedirectToAction("Details", "Reservas", new { id = pago.IdReserva });
                 }
@@ -104,9 +103,7 @@ namespace InmobiliariaTPI.Controllers
                 pago.Estado = 1;
                 pago.FechaCreacion = DateTime.Now;
 
-                _logger.LogInformation("Intentando crear pago...");
                 await _pagoService.CreateAsync(pago);
-                _logger.LogInformation("Pago creado exitosamente con ID: {Id}", pago.Id);
 
                 TempData["Mensaje"] = "Pago creado correctamente";
                 TempData["Tipo"] = "success";

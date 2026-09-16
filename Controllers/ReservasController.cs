@@ -60,13 +60,15 @@ namespace InmobiliariaTPI.Controllers
                 return NotFound();
             }
 
-            // Obtener pagos de la reserva
             var pagos = await _pagoService.GetByReservaIdAsync(id);
             ViewBag.Pagos = pagos;
 
+            var totalPagado = pagos.Where(p => p.Estado == 1).Sum(p => p.Importe);
+            ViewBag.TotalPagado = totalPagado;
+            ViewBag.SaldoPendiente = reserva.MontoTotal - totalPagado;
+
             return View(reserva);
         }
-
         // GET: Reserva/Create
         public async Task<IActionResult> Create()
         {
@@ -121,8 +123,7 @@ namespace InmobiliariaTPI.Controllers
                     if (string.IsNullOrEmpty(usuarioIdClaim))
                     {
                         SetErrorMessage("No se pudo identificar al usuario logueado.");
-                        await CargarDropDowns();
-                        return View(reserva);
+                        return RedirectToAction(nameof(Index));
                     }
 
                     reserva.IdUsuarioCreador = int.Parse(usuarioIdClaim);
@@ -177,8 +178,51 @@ namespace InmobiliariaTPI.Controllers
             }
 
             await CargarDropDowns();
+
+            // inmuebles disponibles
+            var inmuebles = await _inmuebleService.GetDisponiblesAsync();
+            ViewBag.InmueblesJson = System.Text.Json.JsonSerializer.Serialize(
+                inmuebles.Select(i => new
+                {
+                    id = i.Id,
+                    direccion = i.Direccion,
+                    precio = i.PrecioPorDia,
+                    porcentaje = i.PorcentajeReserva
+                })
+            );
+
+            // inquilinos
+            var inquilinos = await _inquilinoService.GetAllAsync();
+            ViewBag.InquilinosJson = System.Text.Json.JsonSerializer.Serialize(
+                inquilinos.Select(i => new
+                {
+                    id = i.Id,
+                    nombreCompleto = i.NombreCompleto,
+                    dni = i.Dni,
+                    email = i.Email
+                })
+            );
+
+            // inmueble actual de la reserva para pre seleccionar
+            ViewBag.InmuebleActualJson = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                id = reserva.IdInmueble,
+                direccion = reserva.Inmueble?.Direccion ?? "",
+                precio = reserva.MontoPorDia,
+                porcentaje = reserva.Inmueble?.PorcentajeReserva ?? 0
+            });
+
+            // inquilino actual de la reserva para pre seleccionar
+            ViewBag.InquilinoActualJson = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                id = reserva.IdInquilino,
+                nombreCompleto = reserva.Inquilino?.NombreCompleto ?? "",
+                dni = reserva.Inquilino?.Dni ?? ""
+            });
+
             return View(reserva);
         }
+
         // POST: Reserva/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -274,12 +318,27 @@ namespace InmobiliariaTPI.Controllers
                 return NotFound();
             }
 
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(usuarioIdClaim))
+            {
+                SetErrorMessage("No se pudo identificar al usuario logueado.");
+                return RedirectToAction(nameof(Index));
+            }
+
             var viewModel = new FinalizarReservaViewModel
             {
                 Id = reserva.Id,
                 FechaTerminacion = DateTime.Now,
-                MultaCalculada = CalcularMulta(reserva)
+                MultaCalculada = CalcularMulta(reserva),
+                FechaInicio = reserva.FechaInicio,
+                FechaFin = reserva.FechaFin,
+                MontoPorDia = reserva.MontoPorDia,
+                InmuebleDireccion = reserva.Inmueble?.Direccion,
+                InquilinoNombre = reserva.Inquilino?.NombreCompleto,
+                IdUsuarioTerminacion = int.Parse(usuarioIdClaim)
             };
+
+            _logger.LogInformation("=== GET FINALIZAR: IdUsuarioTerminacion={Id} ===", viewModel.IdUsuarioTerminacion);
 
             return View(viewModel);
         }
@@ -289,26 +348,46 @@ namespace InmobiliariaTPI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Finalizar(int id, FinalizarReservaViewModel viewModel)
         {
-            _logger.LogInformation("🚀 ENTRO AL POST DE FINALIZAR - ID: {Id}, Fecha: {Fecha}", id, viewModel.FechaTerminacion);
+            _logger.LogInformation("=== POST FINALIZAR: Id={Id}, IdUsuarioTerminacion={IdUsuario} ===",
+                id, viewModel.IdUsuarioTerminacion);
 
             if (id != viewModel.Id)
                 return NotFound();
 
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("⚠️ ModelState inválido en Finalizar");
                 var reserva = await _reservaService.GetByIdAsync(id);
                 if (reserva != null)
                 {
                     viewModel.MultaCalculada = CalcularMulta(reserva);
+                    viewModel.FechaInicio = reserva.FechaInicio;
+                    viewModel.FechaFin = reserva.FechaFin;
+                    viewModel.MontoPorDia = reserva.MontoPorDia;
+                    viewModel.InmuebleDireccion = reserva.Inmueble?.Direccion;
+                    viewModel.InquilinoNombre = reserva.Inquilino?.NombreCompleto;
+                }
+                return View(viewModel);
+            }
+
+            if (viewModel.IdUsuarioTerminacion == 0)
+            {
+                ModelState.AddModelError("", "No se pudo identificar al usuario logueado.");
+                var reserva = await _reservaService.GetByIdAsync(id);
+                if (reserva != null)
+                {
+                    viewModel.MultaCalculada = CalcularMulta(reserva);
+                    viewModel.FechaInicio = reserva.FechaInicio;
+                    viewModel.FechaFin = reserva.FechaFin;
+                    viewModel.MontoPorDia = reserva.MontoPorDia;
+                    viewModel.InmuebleDireccion = reserva.Inmueble?.Direccion;
+                    viewModel.InquilinoNombre = reserva.Inquilino?.NombreCompleto;
                 }
                 return View(viewModel);
             }
 
             try
             {
-                _logger.LogInformation("✅ Intentando finalizar reserva ID: {Id}", id);
-                await _reservaService.FinalizarAsync(id, viewModel.FechaTerminacion, 1);
+                await _reservaService.FinalizarAsync(id, viewModel.FechaTerminacion, viewModel.IdUsuarioTerminacion);
                 SetSuccessMessage("Reserva finalizada correctamente");
                 return RedirectToAction(nameof(Index));
             }
@@ -320,6 +399,11 @@ namespace InmobiliariaTPI.Controllers
                 if (reserva != null)
                 {
                     viewModel.MultaCalculada = CalcularMulta(reserva);
+                    viewModel.FechaInicio = reserva.FechaInicio;
+                    viewModel.FechaFin = reserva.FechaFin;
+                    viewModel.MontoPorDia = reserva.MontoPorDia;
+                    viewModel.InmuebleDireccion = reserva.Inmueble?.Direccion;
+                    viewModel.InquilinoNombre = reserva.Inquilino?.NombreCompleto;
                 }
                 return View(viewModel);
             }
@@ -343,6 +427,13 @@ namespace InmobiliariaTPI.Controllers
                 return NotFound();
             }
 
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(usuarioIdClaim))
+            {
+                SetErrorMessage("No se pudo identificar al usuario logueado.");
+                return RedirectToAction(nameof(Index));
+            }
+
             var nuevaReserva = new Reserva
             {
                 IdInmueble = reserva.IdInmueble,
@@ -350,8 +441,11 @@ namespace InmobiliariaTPI.Controllers
                 FechaInicio = reserva.FechaFin.AddDays(1),
                 FechaFin = reserva.FechaFin.AddDays(7),
                 MontoPorDia = reserva.MontoPorDia,
-                IdUsuarioCreador = 1 // despues viene de sesion
+                IdUsuarioCreador = int.Parse(usuarioIdClaim)
             };
+
+            ViewBag.InmuebleNombre = reserva.Inmueble?.Direccion;
+            ViewBag.InquilinoNombre = reserva.Inquilino?.NombreCompleto;
 
             await CargarDropDowns();
             return View(nuevaReserva);
@@ -366,7 +460,15 @@ namespace InmobiliariaTPI.Controllers
             {
                 try
                 {
-                    nuevaReserva.IdUsuarioCreador = 1; // despues viene de sesion
+                    var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (string.IsNullOrEmpty(usuarioIdClaim))
+                    {
+                        SetErrorMessage("No se pudo identificar al usuario logueado.");
+                        await CargarDropDowns();
+                        return View(nuevaReserva);
+                    }
+
+                    nuevaReserva.IdUsuarioCreador = int.Parse(usuarioIdClaim);
                     await _reservaService.RenovarAsync(nuevaReserva);
                     SetSuccessMessage("Reserva renovada correctamente");
                     return RedirectToAction(nameof(Index));

@@ -14,49 +14,99 @@
     </div>
 }
 
-@if (!ViewData.ModelState.IsValid)
-{
-    <div class="alert alert-danger">
-        <ul>
-            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-            {
-                <li>@error.ErrorMessage</li>
-            }
-        </ul>
-    </div>
-}
-
-<div class="alert alert-warning">
-    <h4>¿Estás seguro de finalizar esta reserva?</h4>
-    <p>Se calculará la multa correspondiente según el tiempo transcurrido.</p>
-</div>
-
 <hr />
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Finalizar" asp-route-id="@Model.Id" method="post" novalidate>
+<div class="row" id="app-finalizar">
+    <div class="col-md-8">
+        <div class="alert alert-warning">
+            <h4><i class="bi bi-exclamation-triangle me-2"></i>¿Estás seguro de finalizar esta reserva?</h4>
+            <p>Se calculará la multa correspondiente según el tiempo transcurrido.</p>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header bg-light">
+                <strong><i class="bi bi-info-circle me-2"></i>Datos de la Reserva</strong>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-4 text-muted">Inmueble:</div>
+                    <div class="col-8">@Model.InmuebleDireccion</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 text-muted">Inquilino:</div>
+                    <div class="col-8">@Model.InquilinoNombre</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 text-muted">Fecha Inicio:</div>
+                    <div class="col-8">@Model.FechaInicio.ToString("dd/MM/yyyy")</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 text-muted">Fecha Fin:</div>
+                    <div class="col-8">@Model.FechaFin.ToString("dd/MM/yyyy")</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 text-muted">Monto por Día:</div>
+                    <div class="col-8">$@Model.MontoPorDia.ToString("N2")</div>
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="Finalizar" asp-route-id="@Model.Id" method="post" @@submit.prevent="guardar">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="IdUsuarioTerminacion" />
+            <input type="hidden" asp-for="MultaCalculada" :value="multa" />
 
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="form-group mb-3">
                 <label asp-for="FechaTerminacion" class="control-label"></label>
-                <input asp-for="FechaTerminacion" class="form-control" type="date" />
-                <span asp-validation-for="FechaTerminacion" class="text-danger"></span>
+                <input asp-for="FechaTerminacion" class="form-control" type="date" v-model="fechaTerminacion" />
+                <span class="text-danger" v-if="errores.fechaTerminacion">{{ errores.fechaTerminacion }}</span>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="MultaCalculada" class="control-label"></label>
-                @* La multa se informa al usuario, pero no se envía: al usar coma
-                   decimal, la validación de jQuery impedía el submit del formulario. *@
-                <input class="form-control" value="@Model.MultaCalculada.ToString("N2")" readonly />
-                <span class="text-muted">La multa se calcula automáticamente</span>
+            <div class="card mb-3" v-if="fechaTerminacion">
+                <div class="card-header bg-light">
+                    <strong><i class="bi bi-calculator me-2"></i>Cálculo de Multa</strong>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <i class="bi bi-calendar-event me-2 text-primary"></i>Días originales:
+                        </div>
+                        <div class="col-6 text-end"><strong>{{ diasOriginales }}</strong></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <i class="bi bi-calendar-check me-2 text-info"></i>Días transcurridos:
+                        </div>
+                        <div class="col-6 text-end"><strong>{{ diasTranscurridos }}</strong></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <i class="bi bi-percent me-2 text-warning"></i>Porcentaje aplicado:
+                        </div>
+                        <div class="col-6 text-end"><strong>{{ porcentajeAplicado }}%</strong></div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-6">
+                            <strong><i class="bi bi-cash-coin me-2 text-danger"></i>Multa a pagar:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            <strong class="text-danger fs-5">${{ formatearPrecio(multa) }}</strong>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="form-group">
-                <button type="submit" class="btn btn-danger">Finalizar</button>
-                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-danger" :disabled="guardando">
+                    <i class="bi bi-check-circle me-1"></i>
+                    {{ guardando ? 'Finalizando...' : 'Finalizar Reserva' }}
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Cancelar
+                </a>
             </div>
         </form>
     </div>
@@ -66,4 +116,97 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    fechaTerminacion: '@(Model?.FechaTerminacion.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))',
+                    fechaInicio: '@(Model?.FechaInicio.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))',
+                    fechaFin: '@(Model?.FechaFin.ToString("yyyy-MM-dd") ?? DateTime.Now.AddDays(7).ToString("yyyy-MM-dd"))',
+                    montoPorDia: @(Model?.MontoPorDia.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0"),
+                    errores: {},
+                    guardando: false
+                }
+            },
+            computed: {
+                diasOriginales() {
+                    if (!this.fechaInicio || !this.fechaFin) return 0;
+                    const inicio = new Date(this.fechaInicio);
+                    const fin = new Date(this.fechaFin);
+                    const diff = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24));
+                    return diff > 0 ? diff : 0;
+                },
+                diasTranscurridos() {
+                    if (!this.fechaInicio || !this.fechaTerminacion) return 0;
+                    const inicio = new Date(this.fechaInicio);
+                    const terminacion = new Date(this.fechaTerminacion);
+                    const diff = Math.ceil((terminacion - inicio) / (1000 * 60 * 60 * 24));
+                    return diff > 0 ? diff : 0;
+                },
+                porcentajeAplicado() {
+                    if (this.diasOriginales === 0) return 0;
+                    return this.diasTranscurridos < this.diasOriginales / 2 ? 50 : 25;
+                },
+                multa() {
+                    if (this.diasOriginales === 0) return 0;
+                    return this.montoPorDia * this.diasOriginales * (this.porcentajeAplicado / 100);
+                }
+            },
+            methods: {
+                formatearPrecio(valor) {
+                    return new Intl.NumberFormat('es-AR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }).format(valor || 0);
+                },
+                validar() {
+                    this.errores = {};
+                    if (!this.fechaTerminacion) {
+                        this.errores.fechaTerminacion = "La fecha de terminación es obligatoria.";
+                    }
+                    const hoy = new Date();
+                    hoy.setHours(0, 0, 0, 0);
+                    const terminacion = new Date(this.fechaTerminacion);
+                    if (terminacion > hoy) {
+                        this.errores.fechaTerminacion = "La fecha de terminación no puede ser en el futuro.";
+                    }
+                    if (terminacion < new Date(this.fechaInicio)) {
+                        this.errores.fechaTerminacion = "La fecha de terminación no puede ser anterior a la fecha de inicio.";
+                    }
+                    return Object.keys(this.errores).length === 0;
+                },
+                async guardar() {
+                    if (!this.validar()) return;
+                    this.guardando = true;
+                    try {
+                        const form = document.querySelector('form');
+                        const formData = new FormData(form);
+                        formData.set('FechaTerminacion', this.fechaTerminacion);
+                        formData.set('MultaCalculada', this.multa);
+
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        } else {
+                            const html = await response.text();
+                            document.open();
+                            document.write(html);
+                            document.close();
+                        }
+                    } catch (error) {
+                        alert('Error de conexión: ' + error.message);
+                    } finally {
+                        this.guardando = false;
+                    }
+                }
+            }
+        }).mount('#app-finalizar');
+    </script>
 }
