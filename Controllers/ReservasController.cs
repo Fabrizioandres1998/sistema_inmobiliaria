@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using InmobiliariaTPI.ViewModels;
+using System.Security.Claims;
 
 namespace InmobiliariaTPI.Controllers
 {
@@ -79,6 +80,30 @@ namespace InmobiliariaTPI.Controllers
                 MontoPorDia = 0
             };
 
+            // Inmuebles disponibles
+            var inmuebles = await _inmuebleService.GetDisponiblesAsync();
+            ViewBag.InmueblesJson = System.Text.Json.JsonSerializer.Serialize(
+                inmuebles.Select(i => new
+                {
+                    id = i.Id,
+                    direccion = i.Direccion,
+                    precio = i.PrecioPorDia,
+                    porcentaje = i.PorcentajeReserva
+                })
+            );
+
+            // Inquilinos
+            var inquilinos = await _inquilinoService.GetAllAsync();
+            ViewBag.InquilinosJson = System.Text.Json.JsonSerializer.Serialize(
+                inquilinos.Select(i => new
+                {
+                    id = i.Id,
+                    nombreCompleto = i.NombreCompleto,
+                    dni = i.Dni,
+                    email = i.Email
+                })
+            );
+
             return View(reserva);
         }
 
@@ -91,7 +116,16 @@ namespace InmobiliariaTPI.Controllers
             {
                 try
                 {
-                    reserva.IdUsuarioCreador = 1; // por ahora hardcodeado, despues viene de sesion
+                    // Obtener el ID del usuario logueado desde el claim
+                    var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (string.IsNullOrEmpty(usuarioIdClaim))
+                    {
+                        SetErrorMessage("No se pudo identificar al usuario logueado.");
+                        await CargarDropDowns();
+                        return View(reserva);
+                    }
+
+                    reserva.IdUsuarioCreador = int.Parse(usuarioIdClaim);
                     await _reservaService.CreateAsync(reserva);
                     SetSuccessMessage("Reserva creada correctamente");
                     return RedirectToAction(nameof(Index));

@@ -89,16 +89,26 @@
                         }
                     </td>
                     <td class="text-nowrap">
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Ver detalles">
+                            <i class="bi bi-eye"></i>
+                        </a>
                         @if (item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
                         {
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
-                            <a asp-action="Finalizar" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Finalizar</a>
-                            <a asp-action="Renovar" asp-route-id="@item.Id" class="btn btn-sm btn-success">Renovar</a>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a asp-action="Finalizar" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Finalizar">
+                                <i class="bi bi-flag"></i>
+                            </a>
+                            <a asp-action="Renovar" asp-route-id="@item.Id" class="btn btn-sm btn-success" title="Renovar">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </a>
                         }
                         @if (User.IsInRole("Administrador"))
                         {
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </a>
                         }
                     </td>
                 </tr>

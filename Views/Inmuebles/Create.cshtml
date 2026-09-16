@@ -7,65 +7,74 @@
 <h1>Crear Inmueble</h1>
 
 <hr />
-<div class="row">
+<div class="row" id="app-inmueble">
     <div class="col-md-6">
-        <form asp-action="Create">
+        <form asp-action="Create" method="post" @@submit.prevent="guardar">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
 
             <div class="form-group mb-3">
                 <label asp-for="Direccion" class="control-label"></label>
-                <input asp-for="Direccion" class="form-control" />
-                <span asp-validation-for="Direccion" class="text-danger"></span>
+                <input class="form-control" v-model="inmueble.direccion" />
+                <span class="text-danger" v-if="errores.direccion">{{ errores.direccion }}</span>
+                <small class="text-muted">Escribiendo: {{ inmueble.direccion }}</small>
+                <!-- lo dejo como test de vue -->
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="CupoMaximo" class="control-label"></label>
-                <input asp-for="CupoMaximo" class="form-control" />
-                <span asp-validation-for="CupoMaximo" class="text-danger"></span>
+                <input asp-for="CupoMaximo" class="form-control" type="number" v-model.number="inmueble.cupoMaximo" />
+                <span class="text-danger" v-if="errores.cupoMaximo">{{ errores.cupoMaximo }}</span>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="Coordenadas" class="control-label"></label>
-                <input asp-for="Coordenadas" class="form-control" />
-                <span asp-validation-for="Coordenadas" class="text-danger"></span>
+                <input asp-for="Coordenadas" class="form-control" v-model="inmueble.coordenadas" />
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="PrecioPorDia" class="control-label"></label>
-                <input asp-for="PrecioPorDia" class="form-control" />
-                <span asp-validation-for="PrecioPorDia" class="text-danger"></span>
+                <input asp-for="PrecioPorDia" class="form-control" type="number" step="0.01"
+                       v-model.number="inmueble.precioPorDia" />
+                <span class="text-danger" v-if="errores.precioPorDia">{{ errores.precioPorDia }}</span>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="ImagenPortada" class="control-label"></label>
-                <input asp-for="ImagenPortada" class="form-control" />
-                <span asp-validation-for="ImagenPortada" class="text-danger"></span>
+                <input asp-for="ImagenPortada" class="form-control" v-model="inmueble.imagenPortada" />
+                <div v-if="inmueble.imagenPortada" class="mt-2">
+                    <img :src="inmueble.imagenPortada" alt="Previsualización" style="max-height:150px;" />
+                </div>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="PorcentajeReserva" class="control-label"></label>
-                <input asp-for="PorcentajeReserva" class="form-control" />
-                <span asp-validation-for="PorcentajeReserva" class="text-danger"></span>
+                <input asp-for="PorcentajeReserva" class="form-control" type="number"
+                       v-model.number="inmueble.porcentajeReserva" />
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="IdPropietario" class="control-label">Propietario</label>
-                <select asp-for="IdPropietario" asp-items="ViewBag.Propietarios" class="form-control">
+                <select asp-for="IdPropietario" asp-items="ViewBag.Propietarios" class="form-control"
+                        v-model.number="inmueble.idPropietario">
                     <option value="">Seleccione un propietario</option>
                 </select>
-                <span asp-validation-for="IdPropietario" class="text-danger"></span>
+                <span class="text-danger" v-if="errores.idPropietario">{{ errores.idPropietario }}</span>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="IdTipoInmueble" class="control-label">Tipo de Inmueble</label>
-                <select asp-for="IdTipoInmueble" asp-items="ViewBag.Tipos" class="form-control">
+                <select asp-for="IdTipoInmueble" asp-items="ViewBag.Tipos" class="form-control"
+                        v-model.number="inmueble.idTipoInmueble">
                     <option value="">Seleccione un tipo</option>
                 </select>
-                <span asp-validation-for="IdTipoInmueble" class="text-danger"></span>
+                <span class="text-danger" v-if="errores.idTipoInmueble">{{ errores.idTipoInmueble }}</span>
             </div>
 
             <div class="form-group">
-                <input type="submit" value="Crear" class="btn btn-primary" />
+                <button type="submit" class="btn btn-primary" :disabled="guardando">
+                    {{ guardando ? 'Creando...' : 'Crear' }}
+                </button>
                 <a asp-action="Index" class="btn btn-secondary">Volver</a>
             </div>
         </form>
@@ -73,5 +82,86 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    inmueble: {
+                        direccion: @Html.Raw(Json.Serialize(Model?.Direccion ?? "")),
+                        cupoMaximo: @(Model?.CupoMaximo ?? 0),
+                        coordenadas: @Html.Raw(Json.Serialize(Model?.Coordenadas ?? "")),
+                        precioPorDia: @(Model?.PrecioPorDia ?? 0),
+                        imagenPortada: @Html.Raw(Json.Serialize(Model?.ImagenPortada ?? "")),
+                        porcentajeReserva: @(Model?.PorcentajeReserva ?? 0),
+                        idPropietario: @(Model?.IdPropietario ?? 0),
+                        idTipoInmueble: @(Model?.IdTipoInmueble ?? 0)
+                                },
+                    errores: {},
+                    guardando: false
+                }
+            },
+            methods: {
+                validar() {
+                    this.errores = {};
+                    if (!this.inmueble.direccion) {
+                        this.errores.direccion = "La dirección es requerida.";
+                    }
+                    if (!this.inmueble.cupoMaximo || this.inmueble.cupoMaximo <= 0) {
+                        this.errores.cupoMaximo = "El cupo debe ser mayor a 0.";
+                    }
+                    if (!this.inmueble.precioPorDia || this.inmueble.precioPorDia <= 0) {
+                        this.errores.precioPorDia = "El precio debe ser mayor a 0.";
+                    }
+                    if (!this.inmueble.idPropietario) {
+                        this.errores.idPropietario = "Debe seleccionar un propietario.";
+                    }
+                    if (!this.inmueble.idTipoInmueble) {
+                        this.errores.idTipoInmueble = "Debe seleccionar un tipo de inmueble.";
+                    }
+                    return Object.keys(this.errores).length === 0;
+                },
+                async guardar() {
+                    if (!this.validar()) return;
+
+                    this.guardando = true;
+                    try {
+                        const form = document.querySelector('form');
+                        const formData = new FormData(form);
+                        formData.set('Direccion', this.inmueble.direccion);
+                        formData.set('CupoMaximo', this.inmueble.cupoMaximo);
+                        formData.set('Coordenadas', this.inmueble.coordenadas);
+                        formData.set('PrecioPorDia', this.inmueble.precioPorDia);
+                        formData.set('ImagenPortada', this.inmueble.imagenPortada);
+                        formData.set('PorcentajeReserva', this.inmueble.porcentajeReserva);
+                        formData.set('IdPropietario', this.inmueble.idPropietario);
+                        formData.set('IdTipoInmueble', this.inmueble.idTipoInmueble);
+
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        } else {
+                            const html = await response.text();
+                            document.open();
+                            document.write(html);
+                            document.close();
+                        }
+                    } catch (error) {
+                        alert('Error de conexión: ' + error.message);
+                    } finally {
+                        this.guardando = false;
+                    }
+                }
+            }
+        }).mount('#app-inmueble');
+    </script>
 }
