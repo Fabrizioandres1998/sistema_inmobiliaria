@@ -17,7 +17,7 @@
             <div class="form-group mb-3">
                 <label asp-for="Direccion" class="control-label"></label>
                 <input asp-for="Direccion" class="form-control" v-model="inmueble.direccion" />
-                <span class="text-danger" v-if="errores.direccion">{{ errores.direccion }}</span>
+                <span class="text-danger" v-if="errorDireccion">{{ errorDireccion }}</span>
             </div>
 
             <div class="row">
@@ -26,7 +26,7 @@
                         <label asp-for="CupoMaximo" class="control-label"></label>
                         <input asp-for="CupoMaximo" class="form-control" type="number"
                                v-model.number="inmueble.cupoMaximo" />
-                        <span class="text-danger" v-if="errores.cupoMaximo">{{ errores.cupoMaximo }}</span>
+                        <span class="text-danger" v-if="errorCupoMaximo">{{ errorCupoMaximo }}</span>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -34,14 +34,16 @@
                         <label asp-for="PrecioPorDia" class="control-label"></label>
                         <input asp-for="PrecioPorDia" class="form-control" type="number" step="0.01"
                                v-model.number="inmueble.precioPorDia" />
-                        <span class="text-danger" v-if="errores.precioPorDia">{{ errores.precioPorDia }}</span>
+                        <span class="text-danger" v-if="errorPrecioPorDia">{{ errorPrecioPorDia }}</span>
                     </div>
                 </div>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="Coordenadas" class="control-label"></label>
-                <input asp-for="Coordenadas" class="form-control" v-model="inmueble.coordenadas" />
+                <input asp-for="Coordenadas" class="form-control"
+                       placeholder="Ej: -34.6037, -58.3816" v-model="inmueble.coordenadas" />
+                <span class="text-danger" v-if="errorCoordenadas">{{ errorCoordenadas }}</span>
             </div>
 
             <div class="form-group mb-3">
@@ -56,6 +58,7 @@
                 <label asp-for="PorcentajeReserva" class="control-label"></label>
                 <input asp-for="PorcentajeReserva" class="form-control" type="number"
                        v-model.number="inmueble.porcentajeReserva" />
+                <span class="text-danger" v-if="errorPorcentajeReserva">{{ errorPorcentajeReserva }}</span>
             </div>
 
             <div class="form-group mb-3 position-relative">
@@ -83,7 +86,7 @@
                     </button>
                 </div>
 
-                <span class="text-danger" v-if="errores.idPropietario">{{ errores.idPropietario }}</span>
+                <span class="text-danger" v-if="!inmueble.idPropietario && intentoGuardar">Debe seleccionar un propietario.</span>
             </div>
 
             <div class="form-group mb-3 position-relative">
@@ -110,7 +113,7 @@
                     </button>
                 </div>
 
-                <span class="text-danger" v-if="errores.idTipoInmueble">{{ errores.idTipoInmueble }}</span>
+                <span class="text-danger" v-if="!inmueble.idTipoInmueble && intentoGuardar">Debe seleccionar un tipo de inmueble.</span>
             </div>
 
             <div class="form-group">
@@ -127,9 +130,7 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 
     <script>
         const { createApp } = Vue;
@@ -156,9 +157,9 @@
                         porcentajeReserva: @(Model?.PorcentajeReserva ?? 0),
                         idPropietario: @(Model?.IdPropietario ?? 0),
                         idTipoInmueble: @(Model?.IdTipoInmueble ?? 0)
-                        },
-                    errores: {},
-                    guardando: false
+                    },
+                    guardando: false,
+                    intentoGuardar: false
                 }
             },
             computed: {
@@ -175,6 +176,43 @@
                     return this.tipos
                         .filter(t => t.nombre.toLowerCase().includes(term))
                         .slice(0, 30);
+                },
+                errorDireccion() {
+                    if (!this.inmueble.direccion) return 'La dirección es obligatoria.';
+                    if (this.inmueble.direccion.length > 200) return 'La dirección no puede superar los 200 caracteres.';
+                    return '';
+                },
+                errorCupoMaximo() {
+                    if (!this.inmueble.cupoMaximo || this.inmueble.cupoMaximo <= 0) return 'El cupo debe ser mayor a 0.';
+                    if (this.inmueble.cupoMaximo > 100) return 'El cupo no puede superar 100.';
+                    return '';
+                },
+                errorPrecioPorDia() {
+                    if (!this.inmueble.precioPorDia || this.inmueble.precioPorDia <= 0) return 'El precio debe ser mayor a 0.';
+                    return '';
+                },
+                errorCoordenadas() {
+                    if (!this.inmueble.coordenadas) return '';
+                    const regex = /^-?[0-9]{1,3}\.[0-9]+,\s*-?[0-9]{1,3}\.[0-9]+$/;
+                    if (!regex.test(this.inmueble.coordenadas)) {
+                        return 'Las coordenadas deben tener el formato: latitud, longitud (ej: -34.6037, -58.3816).';
+                    }
+                    return '';
+                },
+                errorPorcentajeReserva() {
+                    if (this.inmueble.porcentajeReserva < 0 || this.inmueble.porcentajeReserva > 100) {
+                        return 'El porcentaje debe estar entre 0 y 100.';
+                    }
+                    return '';
+                },
+                formularioValido() {
+                    return !this.errorDireccion &&
+                           !this.errorCupoMaximo &&
+                           !this.errorPrecioPorDia &&
+                           !this.errorCoordenadas &&
+                           !this.errorPorcentajeReserva &&
+                           this.inmueble.idPropietario > 0 &&
+                           this.inmueble.idTipoInmueble > 0;
                 }
             },
             methods: {
@@ -206,27 +244,9 @@
                 cerrarSugerenciasTipo() {
                     setTimeout(() => { this.mostrarSugerenciasTipo = false; }, 150);
                 },
-                validar() {
-                    this.errores = {};
-                    if (!this.inmueble.direccion) {
-                        this.errores.direccion = "La dirección es requerida.";
-                    }
-                    if (!this.inmueble.cupoMaximo || this.inmueble.cupoMaximo <= 0) {
-                        this.errores.cupoMaximo = "El cupo debe ser mayor a 0.";
-                    }
-                    if (!this.inmueble.precioPorDia || this.inmueble.precioPorDia <= 0) {
-                        this.errores.precioPorDia = "El precio debe ser mayor a 0.";
-                    }
-                    if (!this.inmueble.idPropietario) {
-                        this.errores.idPropietario = "Debe seleccionar un propietario.";
-                    }
-                    if (!this.inmueble.idTipoInmueble) {
-                        this.errores.idTipoInmueble = "Debe seleccionar un tipo de inmueble.";
-                    }
-                    return Object.keys(this.errores).length === 0;
-                },
                 async guardar() {
-                    if (!this.validar()) return;
+                    this.intentoGuardar = true;
+                    if (!this.formularioValido) return;
 
                     this.guardando = true;
                     try {
@@ -250,9 +270,7 @@
                             window.location.href = response.url;
                         } else {
                             const html = await response.text();
-                            document.open();
-                            document.write(html);
-                            document.close();
+                            document.documentElement.innerHTML = html;
                         }
                     } catch (error) {
                         alert('Error de conexión: ' + error.message);

@@ -14,87 +14,101 @@
     </div>
 }
 
-<h1>Pagos</h1>
+<div id="app-pagos">
+    <h1>Pagos</h1>
 
-<form asp-action="Index" method="get" class="mb-3">
-    <div class="input-group">
-        <input type="text" name="searchTerm" class="form-control" placeholder="Buscar por concepto..."
-               value="@ViewBag.SearchTerm" />
-        <button type="submit" class="btn btn-outline-secondary">
-            <i class="bi bi-search"></i>
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Buscar por concepto..." v-model="busqueda" />
+        <button type="button" class="btn btn-outline-secondary" v-if="busqueda" @@click="busqueda = ''">
+            <i class="bi bi-x-circle"></i>
         </button>
-        @if (!string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string))
-        {
-            <a asp-action="Index" class="btn btn-outline-danger" title="Limpiar">
-                <i class="bi bi-x-circle"></i>
-            </a>
-        }
     </div>
-</form>
 
-<table class="table table-striped align-middle">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.First().Id)</th>
-            <th>@Html.DisplayNameFor(model => model.First().Concepto)</th>
-            <th>@Html.DisplayNameFor(model => model.First().FechaPago)</th>
-            <th>@Html.DisplayNameFor(model => model.First().Importe)</th>
-            <th>@Html.DisplayNameFor(model => model.First().Estado)</th>
-            <th>Reserva</th>
-            <th class="text-nowrap">Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+    <table class="table table-striped align-middle">
+        <thead>
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.Id)</td>
-                <td>@Html.DisplayFor(modelItem => item.Concepto)</td>
-                <td>@item.FechaPago.ToShortDateString()</td>
-                <td>@item.Importe.ToString("N2")</td>
-                <td>
-                    @if (item.Estado == 1)
-                    {
-                        <span class="badge bg-success">Activo</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-danger">Anulado</span>
-                    }
-                </td>
-                <td>@Html.DisplayFor(modelItem => item.IdReserva)</td>
-                <td class="text-nowrap">
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Ver detalles">
-                        <i class="bi bi-eye"></i>
-                    </a>
-                    @if (item.Estado == 1)
-                    {
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Editar">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        @if (User.IsInRole("Administrador"))
-                        {
-                            <a asp-action="Anular" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Anular">
-                                <i class="bi bi-x-circle"></i>
-                            </a>
-                        }
-                    }
-                </td>
+                <th>@Html.DisplayNameFor(model => model.First().Id)</th>
+                <th>@Html.DisplayNameFor(model => model.First().Concepto)</th>
+                <th>@Html.DisplayNameFor(model => model.First().FechaPago)</th>
+                <th>@Html.DisplayNameFor(model => model.First().Importe)</th>
+                <th>@Html.DisplayNameFor(model => model.First().Estado)</th>
+                <th>Reserva</th>
+                <th class="text-nowrap">Acciones</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr v-if="coincide('@item.Concepto')">
+                    <td>@Html.DisplayFor(modelItem => item.Id)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Concepto)</td>
+                    <td>@item.FechaPago.ToShortDateString()</td>
+                    <td>@item.Importe.ToString("N2")</td>
+                    <td>
+                        @if (item.Estado == 1)
+                        {
+                            <span class="badge bg-success">Activo</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Anulado</span>
+                        }
+                    </td>
+                    <td>@Html.DisplayFor(modelItem => item.IdReserva)</td>
+                    <td class="text-nowrap">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Ver detalles">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        @if (item.Estado == 1)
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            @if (User.IsInRole("Administrador"))
+                            {
+                                <a asp-action="Anular" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Anular">
+                                    <i class="bi bi-x-circle"></i>
+                                </a>
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 
-<div class="d-flex justify-content-center">
-    @Html.PagedListPager(Model, page => Url.Action("Index", new
-    {
-        page,
-        pageSize = Model.PageSize,
-        searchTerm = ViewBag.SearchTerm
-    }),
-        new PagedListRenderOptions
+    <div class="d-flex justify-content-center">
+        @Html.PagedListPager(Model, page => Url.Action("Index", new
         {
-            LiElementClasses = new[] { "page-item" },
-            PageClasses = new[] { "page-link" }
-        })
+            page,
+            pageSize = Model.PageSize,
+            searchTerm = ViewBag.SearchTerm
+        }),
+            new PagedListRenderOptions
+            {
+                LiElementClasses = new[] { "page-item" },
+                PageClasses = new[] { "page-link" }
+            })
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    busqueda: ''
+                }
+            },
+            methods: {
+                coincide(concepto) {
+                    if (!this.busqueda) return true;
+                    const term = this.busqueda.toLowerCase().trim();
+                    return concepto && concepto.toLowerCase().includes(term);
+                }
+            }
+        }).mount('#app-pagos');
+    </script>
+}

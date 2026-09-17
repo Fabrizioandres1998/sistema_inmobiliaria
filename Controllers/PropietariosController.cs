@@ -61,6 +61,12 @@ namespace InmobiliariaTPI.Controllers
                 SetSuccessMessage($"Propietario '{propietario.NombreCompleto}' creado exitosamente");
                 return RedirectToAction(nameof(Index));
             }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Error de negocio al crear propietario");
+                ModelState.AddModelError("", ex.Message);
+                return View(propietario);
+            }
             catch (Exception ex)
             {
                 AddModelErrors(ex);
