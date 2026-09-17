@@ -59,6 +59,25 @@ namespace InmobiliariaTPI.Controllers
         {
             _logger.LogInformation("Mostrando formulario de creación de inmueble");
             await CargarDropDowns();
+
+            var propietarios = await _propietarioService.GetAllAsync();
+            ViewBag.PropietariosJson = System.Text.Json.JsonSerializer.Serialize(
+                propietarios.Select(p => new
+                {
+                    id = p.Id,
+                    nombreCompleto = p.NombreCompleto
+                })
+            );
+
+            var tipos = await _tipoInmuebleService.GetAllAsync();
+            ViewBag.TiposJson = System.Text.Json.JsonSerializer.Serialize(
+                tipos.Select(t => new
+                {
+                    id = t.Id,
+                    nombre = t.Nombre
+                })
+            );
+
             return View();
         }
 
@@ -97,7 +116,41 @@ namespace InmobiliariaTPI.Controllers
                 _logger.LogWarning("Inmueble ID: {Id} no encontrado para editar", id);
                 return NotFound();
             }
+
             await CargarDropDowns();
+
+            // JSON para buscadores
+            var propietarios = await _propietarioService.GetAllAsync();
+            ViewBag.PropietariosJson = System.Text.Json.JsonSerializer.Serialize(
+                propietarios.Select(p => new
+                {
+                    id = p.Id,
+                    nombreCompleto = p.NombreCompleto
+                })
+            );
+
+            var tipos = await _tipoInmuebleService.GetAllAsync();
+            ViewBag.TiposJson = System.Text.Json.JsonSerializer.Serialize(
+                tipos.Select(t => new
+                {
+                    id = t.Id,
+                    nombre = t.Nombre
+                })
+            );
+
+            // actuales para pre seleccionar
+            ViewBag.PropietarioActualJson = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                id = inmueble.IdPropietario,
+                nombreCompleto = inmueble.Propietario?.NombreCompleto ?? ""
+            });
+
+            ViewBag.TipoActualJson = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                id = inmueble.IdTipoInmueble,
+                nombre = inmueble.TipoInmueble?.Nombre ?? ""
+            });
+
             return View(inmueble);
         }
 

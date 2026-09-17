@@ -30,7 +30,7 @@
     else
     {
         <a asp-action="Index" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-soloDisponibles="true"
-        class="btn btn-success">
+           class="btn btn-success">
             Ver Disponibles
         </a>
     }
@@ -41,10 +41,14 @@
         <input type="text" name="searchTerm" class="form-control" placeholder="Buscar por dirección, tipo de inmueble o nombre de propietario..."
             value="@ViewBag.SearchTerm" />
         <input type="hidden" name="soloDisponibles" value="@soloDisponibles.ToString().ToLower()" />
-        <button type="submit" class="btn btn-outline-secondary">Buscar</button>
+        <button type="submit" class="btn btn-outline-secondary">
+            <i class="bi bi-search"></i>
+        </button>
         @if (!string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string))
         {
-            <a asp-action="Index" asp-route-soloDisponibles="@soloDisponibles" class="btn btn-outline-danger">Limpiar</a>
+            <a asp-action="Index" asp-route-soloDisponibles="@soloDisponibles" class="btn btn-outline-danger" title="Limpiar">
+                <i class="bi bi-x-circle"></i>
+            </a>
         }
     </div>
 </form>
@@ -84,19 +88,29 @@
                     <td>@item.Propietario?.NombreCompleto</td>
                     <td>@item.TipoInmueble?.Nombre</td>
                     <td class="text-nowrap">
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalles</a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Ver detalles">
+                            <i class="bi bi-eye"></i>
+                        </a>
                         @if (item.Disponible)
                         {
-                            <a asp-action="Suspender" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Suspender</a>
+                            <a asp-action="Suspender" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Suspender">
+                                <i class="bi bi-pause-circle"></i>
+                            </a>
                         }
                         else
                         {
-                            <a asp-action="Activar" asp-route-id="@item.Id" class="btn btn-sm btn-success">Activar</a>
+                            <a asp-action="Activar" asp-route-id="@item.Id" class="btn btn-sm btn-success" title="Activar">
+                                <i class="bi bi-play-circle"></i>
+                            </a>
                         }
                         @if (User.IsInRole("Administrador"))
                         {
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </a>
                         }
                     </td>
                 </tr>

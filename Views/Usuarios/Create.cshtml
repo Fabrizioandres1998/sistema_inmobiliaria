@@ -6,42 +6,65 @@
 
 <h1>Crear Usuario</h1>
 
-<div class="row">
+<hr />
+<div class="row" id="app-usuario">
     <div class="col-md-6">
-        <form asp-action="Create">
+        <form asp-action="Create" method="post" @@submit.prevent="guardar">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="form-group mb-3">
                 <label asp-for="NombreCompleto" class="control-label"></label>
-                <input asp-for="NombreCompleto" class="form-control" />
-                <span asp-validation-for="NombreCompleto" class="text-danger"></span>
+                <input asp-for="NombreCompleto" class="form-control" v-model="usuario.nombreCompleto" />
+                <span class="text-danger" v-if="errores.nombreCompleto">{{ errores.nombreCompleto }}</span>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" type="email" />
-                <span asp-validation-for="Email" class="text-danger"></span>
+                <input asp-for="Email" class="form-control" type="email" v-model="usuario.email" />
+                <span class="text-danger" v-if="errores.email">{{ errores.email }}</span>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="Password" class="control-label"></label>
-                <input asp-for="Password" class="form-control" type="password" />
-                <span asp-validation-for="Password" class="text-danger"></span>
+                <input asp-for="Password" class="form-control" type="password" v-model="usuario.password" />
+                <span class="text-danger" v-if="errores.password">{{ errores.password }}</span>
+
+                <div class="progress mt-2" style="height: 8px;" v-if="usuario.password">
+                    <div class="progress-bar" :class="colorFortaleza"
+                         :style="{ width: porcentajeFortaleza + '%' }"></div>
+                </div>
+                <small class="text-muted" v-if="usuario.password">
+                    Fortaleza: <strong>{{ textoFortaleza }}</strong>
+                </small>
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="control-label">Confirmar Contraseña</label>
+                <input class="form-control" type="password" v-model="confirmarPassword" />
+                <span class="text-danger" v-if="errores.confirmarPassword">{{ errores.confirmarPassword }}</span>
+                <small class="text-success" v-if="confirmarPassword && usuario.password === confirmarPassword">
+                    <i class="bi bi-check-circle me-1"></i>Las contraseñas coinciden
+                </small>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="Rol" class="control-label"></label>
-                <select asp-for="Rol" class="form-control">
+                <select asp-for="Rol" class="form-control" v-model="usuario.rol">
                     <option value="">-- Seleccione un rol --</option>
                     <option value="Administrador">Administrador</option>
                     <option value="Empleado">Empleado</option>
                 </select>
-                <span asp-validation-for="Rol" class="text-danger"></span>
+                <span class="text-danger" v-if="errores.rol">{{ errores.rol }}</span>
             </div>
 
             <div class="form-group">
-                <input type="submit" value="Crear" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary" :disabled="guardando">
+                    <i class="bi bi-check-circle me-1"></i>
+                    {{ guardando ? 'Creando...' : 'Crear' }}
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Cancelar
+                </a>
             </div>
         </form>
     </div>
@@ -49,4 +72,105 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    usuario: {
+                        nombreCompleto: '',
+                        email: '',
+                        password: '',
+                        rol: ''
+                    },
+                    confirmarPassword: '',
+                    errores: {},
+                    guardando: false
+                }
+            },
+            computed: {
+                porcentajeFortaleza() {
+                    return this.calcularFortaleza(this.usuario.password).porcentaje;
+                },
+                textoFortaleza() {
+                    return this.calcularFortaleza(this.usuario.password).texto;
+                },
+                colorFortaleza() {
+                    return this.calcularFortaleza(this.usuario.password).color;
+                }
+            },
+            methods: {
+                calcularFortaleza(pwd) {
+                    if (!pwd) return { porcentaje: 0, texto: '', color: '' };
+                    let puntos = 0;
+                    if (pwd.length >= 6) puntos++;
+                    if (pwd.length >= 10) puntos++;
+                    if (/[A-Z]/.test(pwd)) puntos++;
+                    if (/[0-9]/.test(pwd)) puntos++;
+                    if (/[^A-Za-z0-9]/.test(pwd)) puntos++;
+
+                    if (puntos <= 1) return { porcentaje: 20, texto: 'Muy débil', color: 'bg-danger' };
+                    if (puntos === 2) return { porcentaje: 40, texto: 'Débil', color: 'bg-danger' };
+                    if (puntos === 3) return { porcentaje: 60, texto: 'Media', color: 'bg-warning' };
+                    if (puntos === 4) return { porcentaje: 80, texto: 'Fuerte', color: 'bg-info' };
+                    return { porcentaje: 100, texto: 'Muy fuerte', color: 'bg-success' };
+                },
+                validar() {
+                    this.errores = {};
+                    if (!this.usuario.nombreCompleto) {
+                        this.errores.nombreCompleto = "El nombre completo es obligatorio.";
+                    }
+                    if (!this.usuario.email) {
+                        this.errores.email = "El email es obligatorio.";
+                    } else if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(this.usuario.email)) {
+                        this.errores.email = "El email no tiene un formato válido.";
+                    }
+                    if (!this.usuario.password) {
+                        this.errores.password = "La contraseña es obligatoria.";
+                    } else if (this.usuario.password.length < 6) {
+                        this.errores.password = "La contraseña debe tener al menos 6 caracteres.";
+                    }
+                    if (!this.confirmarPassword) {
+                        this.errores.confirmarPassword = "Debe confirmar la contraseña.";
+                    } else if (this.usuario.password !== this.confirmarPassword) {
+                        this.errores.confirmarPassword = "Las contraseñas no coinciden.";
+                    }
+                    if (!this.usuario.rol) {
+                        this.errores.rol = "Debe seleccionar un rol.";
+                    }
+                    return Object.keys(this.errores).length === 0;
+                },
+                async guardar() {
+                    if (!this.validar()) return;
+                    this.guardando = true;
+                    try {
+                        const form = document.querySelector('form');
+                        const formData = new FormData(form);
+                        formData.set('NombreCompleto', this.usuario.nombreCompleto);
+                        formData.set('Email', this.usuario.email);
+                        formData.set('Password', this.usuario.password);
+                        formData.set('Rol', this.usuario.rol);
+
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        } else {
+                            const html = await response.text();
+                            document.documentElement.innerHTML = html;
+                        }
+                    } catch (error) {
+                        alert('Error de conexión: ' + error.message);
+                    } finally {
+                        this.guardando = false;
+                    }
+                }
+            }
+        }).mount('#app-usuario');
+    </script>
 }

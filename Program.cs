@@ -15,7 +15,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/Auth/Login";
         options.LogoutPath = "/Auth/Logout";
         options.AccessDeniedPath = "/Auth/AccessDenied";
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
         options.SlidingExpiration = true;
         options.Cookie.Name = "InmobiliariaTPI";
         options.Cookie.HttpOnly = true;

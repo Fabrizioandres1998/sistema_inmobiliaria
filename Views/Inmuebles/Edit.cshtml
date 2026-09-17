@@ -7,78 +7,278 @@
 <h1>Editar Inmueble</h1>
 
 <hr />
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Edit">
+<div class="row" id="app-inmueble">
+    <div class="col-md-8">
+        <form asp-action="Edit" method="post" @@submit.prevent="guardar">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="FechaCreacion" />
+            <input type="hidden" name="IdPropietario" :value="inmueble.idPropietario" />
+            <input type="hidden" name="IdTipoInmueble" :value="inmueble.idTipoInmueble" />
 
             <div class="form-group mb-3">
                 <label asp-for="Direccion" class="control-label"></label>
-                <input asp-for="Direccion" class="form-control" />
-                <span asp-validation-for="Direccion" class="text-danger"></span>
+                <input asp-for="Direccion" class="form-control" v-model="inmueble.direccion" />
+                <span class="text-danger" v-if="errores.direccion">{{ errores.direccion }}</span>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="CupoMaximo" class="control-label"></label>
-                <input asp-for="CupoMaximo" class="form-control" />
-                <span asp-validation-for="CupoMaximo" class="text-danger"></span>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="CupoMaximo" class="control-label"></label>
+                        <input asp-for="CupoMaximo" class="form-control" type="number"
+                               v-model.number="inmueble.cupoMaximo" />
+                        <span class="text-danger" v-if="errores.cupoMaximo">{{ errores.cupoMaximo }}</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="PrecioPorDia" class="control-label"></label>
+                        <input asp-for="PrecioPorDia" class="form-control" type="number" step="0.01"
+                               v-model.number="inmueble.precioPorDia" />
+                        <span class="text-danger" v-if="errores.precioPorDia">{{ errores.precioPorDia }}</span>
+                    </div>
+                </div>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="Coordenadas" class="control-label"></label>
-                <input asp-for="Coordenadas" class="form-control" />
-                <span asp-validation-for="Coordenadas" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="PrecioPorDia" class="control-label"></label>
-                <input asp-for="PrecioPorDia" class="form-control" />
-                <span asp-validation-for="PrecioPorDia" class="text-danger"></span>
+                <input asp-for="Coordenadas" class="form-control" v-model="inmueble.coordenadas" />
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="ImagenPortada" class="control-label"></label>
-                <input asp-for="ImagenPortada" class="form-control" />
-                <span asp-validation-for="ImagenPortada" class="text-danger"></span>
+                <input asp-for="ImagenPortada" class="form-control" v-model="inmueble.imagenPortada" />
+                <div v-if="inmueble.imagenPortada" class="mt-2">
+                    <img :src="inmueble.imagenPortada" alt="Previsualización" style="max-height:150px;" />
+                </div>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="PorcentajeReserva" class="control-label"></label>
-                <input asp-for="PorcentajeReserva" class="form-control" />
-                <span asp-validation-for="PorcentajeReserva" class="text-danger"></span>
+                <input asp-for="PorcentajeReserva" class="form-control" type="number"
+                       v-model.number="inmueble.porcentajeReserva" />
+                <span class="text-danger" v-if="errores.porcentajeReserva">{{ errores.porcentajeReserva }}</span>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="IdPropietario" class="control-label">Propietario</label>
-                <select asp-for="IdPropietario" asp-items="ViewBag.Propietarios" class="form-control">
-                    <option value="">Seleccione un propietario</option>
-                </select>
-                <span asp-validation-for="IdPropietario" class="text-danger"></span>
+            <div class="form-group mb-3 position-relative">
+                <label class="control-label">Propietario</label>
+                <input type="text" class="form-control" placeholder="Buscar por nombre..." v-model="busquedaPropietario"
+                @@focus="mostrarSugerenciasPropietario = true" @@blur="cerrarSugerenciasPropietario"
+                       autocomplete="off" />
+
+                <ul class="list-group position-absolute w-100 shadow"
+                    style="z-index: 1000; max-height: 300px; overflow-y: auto;"
+                    v-if="mostrarSugerenciasPropietario && propietariosFiltrados.length > 0">
+                    <li class="list-group-item list-group-item-action" v-for="p in propietariosFiltrados" :key="p.id"
+                        @@mousedown.prevent="seleccionarPropietario(p)" style="cursor: pointer;">
+                        {{ p.nombreCompleto }}
+                    </li>
+                </ul>
+
+                <div class="mt-2" v-if="propietarioSeleccionado">
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Seleccionado: {{ propietarioSeleccionado.nombreCompleto }}
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" @@click="limpiarPropietario">
+                        <i class="bi bi-x-circle me-1"></i>Quitar
+                    </button>
+                </div>
+
+                <span class="text-danger" v-if="errores.idPropietario">{{ errores.idPropietario }}</span>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="IdTipoInmueble" class="control-label">Tipo de Inmueble</label>
-                <select asp-for="IdTipoInmueble" asp-items="ViewBag.Tipos" class="form-control">
-                    <option value="">Seleccione un tipo</option>
-                </select>
-                <span asp-validation-for="IdTipoInmueble" class="text-danger"></span>
+            <div class="form-group mb-3 position-relative">
+                <label class="control-label">Tipo de Inmueble</label>
+                <input type="text" class="form-control" placeholder="Buscar tipo..." v-model="busquedaTipo"
+                @@focus="mostrarSugerenciasTipo = true" @@blur="cerrarSugerenciasTipo" autocomplete="off" />
+
+                <ul class="list-group position-absolute w-100 shadow"
+                    style="z-index: 1000; max-height: 300px; overflow-y: auto;"
+                    v-if="mostrarSugerenciasTipo && tiposFiltrados.length > 0">
+                    <li class="list-group-item list-group-item-action" v-for="t in tiposFiltrados" :key="t.id"
+                        @@mousedown.prevent="seleccionarTipo(t)" style="cursor: pointer;">
+                        {{ t.nombre }}
+                    </li>
+                </ul>
+
+                <div class="mt-2" v-if="tipoSeleccionado">
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Seleccionado: {{ tipoSeleccionado.nombre }}
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" @@click="limpiarTipo">
+                        <i class="bi bi-x-circle me-1"></i>Quitar
+                    </button>
+                </div>
+
+                <span class="text-danger" v-if="errores.idTipoInmueble">{{ errores.idTipoInmueble }}</span>
             </div>
 
             <div class="form-check mb-3">
-                <input asp-for="Disponible" class="form-check-input" />
+                <input asp-for="Disponible" class="form-check-input" type="checkbox" v-model="inmueble.disponible" />
                 <label asp-for="Disponible" class="form-check-label"></label>
             </div>
 
             <div class="form-group">
-                <input type="submit" value="Guardar" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Volver</a>
+                <button type="submit" class="btn btn-primary" :disabled="guardando">
+                    <i class="bi bi-check-circle me-1"></i>
+                    {{ guardando ? 'Guardando...' : 'Guardar' }}
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Volver
+                </a>
             </div>
         </form>
     </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    propietarios: @Html.Raw(ViewBag.PropietariosJson ?? "[]"),
+                    busquedaPropietario: '',
+                    mostrarSugerenciasPropietario: false,
+                    propietarioSeleccionado: @Html.Raw(ViewBag.PropietarioActualJson ?? "null"),
+
+                    tipos: @Html.Raw(ViewBag.TiposJson ?? "[]"),
+                    busquedaTipo: '',
+                    mostrarSugerenciasTipo: false,
+                    tipoSeleccionado: @Html.Raw(ViewBag.TipoActualJson ?? "null"),
+
+                    inmueble: {
+                        idPropietario: @(Model?.IdPropietario ?? 0),
+                        idTipoInmueble: @(Model?.IdTipoInmueble ?? 0),
+                        direccion: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model?.Direccion ?? "")),
+                        cupoMaximo: @(Model?.CupoMaximo ?? 0),
+                        coordenadas: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model?.Coordenadas ?? "")),
+                        precioPorDia: @(Model?.PrecioPorDia.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0"),
+                        imagenPortada: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model?.ImagenPortada ?? "")),
+                        porcentajeReserva: @(Model?.PorcentajeReserva ?? 0),
+                        disponible: @(Model?.Disponible == true ? "true" : "false")
+                        },
+                    errores: {},
+                    guardando: false
+                }
+            },
+            computed: {
+                propietariosFiltrados() {
+                    if (!this.busquedaPropietario) return this.propietarios.slice(0, 30);
+                    const term = this.busquedaPropietario.toLowerCase().trim();
+                    return this.propietarios
+                        .filter(p => p.nombreCompleto.toLowerCase().includes(term))
+                        .slice(0, 30);
+                },
+                tiposFiltrados() {
+                    if (!this.busquedaTipo) return this.tipos.slice(0, 30);
+                    const term = this.busquedaTipo.toLowerCase().trim();
+                    return this.tipos
+                        .filter(t => t.nombre.toLowerCase().includes(term))
+                        .slice(0, 30);
+                }
+            },
+            mounted() {
+                if (this.propietarioSeleccionado) {
+                    this.busquedaPropietario = this.propietarioSeleccionado.nombreCompleto;
+                }
+                if (this.tipoSeleccionado) {
+                    this.busquedaTipo = this.tipoSeleccionado.nombre;
+                }
+            },
+            methods: {
+                seleccionarPropietario(p) {
+                    this.propietarioSeleccionado = p;
+                    this.inmueble.idPropietario = p.id;
+                    this.busquedaPropietario = p.nombreCompleto;
+                    this.mostrarSugerenciasPropietario = false;
+                },
+                limpiarPropietario() {
+                    this.propietarioSeleccionado = null;
+                    this.inmueble.idPropietario = 0;
+                    this.busquedaPropietario = '';
+                },
+                cerrarSugerenciasPropietario() {
+                    setTimeout(() => { this.mostrarSugerenciasPropietario = false; }, 150);
+                },
+                seleccionarTipo(t) {
+                    this.tipoSeleccionado = t;
+                    this.inmueble.idTipoInmueble = t.id;
+                    this.busquedaTipo = t.nombre;
+                    this.mostrarSugerenciasTipo = false;
+                },
+                limpiarTipo() {
+                    this.tipoSeleccionado = null;
+                    this.inmueble.idTipoInmueble = 0;
+                    this.busquedaTipo = '';
+                },
+                cerrarSugerenciasTipo() {
+                    setTimeout(() => { this.mostrarSugerenciasTipo = false; }, 150);
+                },
+                validar() {
+                    this.errores = {};
+                    if (!this.inmueble.direccion) {
+                        this.errores.direccion = "La dirección es requerida.";
+                    }
+                    if (!this.inmueble.cupoMaximo || this.inmueble.cupoMaximo <= 0) {
+                        this.errores.cupoMaximo = "El cupo debe ser mayor a 0.";
+                    }
+                    if (!this.inmueble.precioPorDia || this.inmueble.precioPorDia <= 0) {
+                        this.errores.precioPorDia = "El precio debe ser mayor a 0.";
+                    }
+                    if (!this.inmueble.idPropietario) {
+                        this.errores.idPropietario = "Debe seleccionar un propietario.";
+                    }
+                    if (!this.inmueble.idTipoInmueble) {
+                        this.errores.idTipoInmueble = "Debe seleccionar un tipo.";
+                    }
+                    return Object.keys(this.errores).length === 0;
+                },
+                async guardar() {
+                    if (!this.validar()) return;
+                    this.guardando = true;
+                    try {
+                        const form = document.querySelector('form');
+                        const formData = new FormData(form);
+                        formData.set('Id', @(Model?.Id ?? 0));
+                        formData.set('IdPropietario', this.inmueble.idPropietario);
+                        formData.set('IdTipoInmueble', this.inmueble.idTipoInmueble);
+                        formData.set('Direccion', this.inmueble.direccion);
+                        formData.set('CupoMaximo', this.inmueble.cupoMaximo);
+                        formData.set('Coordenadas', this.inmueble.coordenadas);
+                        formData.set('PrecioPorDia', this.inmueble.precioPorDia);
+                        formData.set('ImagenPortada', this.inmueble.imagenPortada);
+                        formData.set('PorcentajeReserva', this.inmueble.porcentajeReserva);
+                        formData.set('Disponible', this.inmueble.disponible);
+
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        } else {
+                            const html = await response.text();
+                            document.open();
+                            document.write(html);
+                            document.close();
+                        }
+                    } catch (error) {
+                        alert('Error de conexión: ' + error.message);
+                    } finally {
+                        this.guardando = false;
+                    }
+                }
+            }
+        }).mount('#app-inmueble');
+    </script>
 }
