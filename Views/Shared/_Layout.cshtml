@@ -9,8 +9,9 @@
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 
 <body>
@@ -35,16 +36,16 @@
                     </a>
 
 
-                    <!-- BOTÓN MOBILE -->
+                    <!-- BOTON MOBILE -->
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
-                            aria-controls="mainNavbar" aria-expanded="false" aria-label="Abrir menú">
+                            aria-controls="mainNavbar" aria-expanded="false" aria-label="Abrir menu">
 
                         <span class="navbar-toggler-icon"></span>
 
                     </button>
 
 
-                    <!-- MENÚ -->
+                    <!-- MENU -->
                     <div class="collapse navbar-collapse" id="mainNavbar">
 
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-lg-1">
@@ -140,7 +141,7 @@
                                 <a class="nav-link text-danger fw-semibold" asp-controller="Auth" asp-action="Logout">
 
                                     <i class="bi bi-box-arrow-right"></i>
-                                    Cerrar Sesión
+                                    Cerrar Sesion
 
                                 </a>
                             </li>
@@ -195,7 +196,7 @@
                         <span class="footer-separator">•</span>
 
                         <span>
-                            Sistema de gestión inmobiliaria
+                            Sistema de gestion inmobiliaria
                         </span>
                     </div>
 

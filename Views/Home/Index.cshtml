@@ -2,81 +2,220 @@
     ViewData["Title"] = "Inicio";
 }
 
-<h1>Bienvenido al Sistema de Inmobiliaria</h1>
+<div class="home-container">
 
-<p>Este es el panel principal de la aplicación.</p>
-
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-header">Propietarios</div>
-            <div class="card-body">
-                <h5 class="card-title">Ir a Propietarios</h5>
-                <a asp-controller="Propietarios" asp-action="Index" class="btn btn-light">Ver</a>
-            </div>
-        </div>
+    <div class="home-header">
+        <h1 class="home-title">Bienvenido al Sistema de Inmobiliaria</h1>
+        <p class="home-subtitle">Panel principal de gestión</p>
     </div>
 
-    <div class="col-md-3">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-header">Inquilinos</div>
-            <div class="card-body">
-                <h5 class="card-title">Ir a Inquilinos</h5>
-                <a asp-controller="Inquilinos" asp-action="Index" class="btn btn-light">Ver</a>
-            </div>
-        </div>
-    </div>
+    <div class="row g-4 mt-2">
 
-    <div class="col-md-3">
-        <div class="card text-white bg-warning mb-3">
-            <div class="card-header">Inmuebles</div>
-            <div class="card-body">
-                <h5 class="card-title">Ir a Inmuebles</h5>
-                <a asp-controller="Inmuebles" asp-action="Index" class="btn btn-light">Ver</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card text-white bg-danger mb-3">
-            <div class="card-header">Tipos de Inmueble</div>
-            <div class="card-body">
-                <h5 class="card-title">Ir a Tipos</h5>
-                <a asp-controller="TipoInmueble" asp-action="Index" class="btn btn-light">Ver</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card text-white bg-info mb-3">
-            <div class="card-header">Reservas</div>
-            <div class="card-body">
-                <h5 class="card-title">Ir a Reservas</h5>
-                <a asp-controller="Reservas" asp-action="Index" class="btn btn-light">Ver</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card text-white bg-secondary mb-3">
-            <div class="card-header">Pagos</div>
-            <div class="card-body">
-                <h5 class="card-title">Ir a Pagos</h5>
-                <a asp-controller="Pagos" asp-action="Index" class="btn btn-light">Ver</a>
-            </div>
-        </div>
-    </div>
-
-    @if (User.IsInRole("Administrador"))
-    {
-        <div class="col-md-3">
-            <div class="card text-white bg-dark mb-3">
-                <div class="card-header">Usuarios</div>
-                <div class="card-body">
-                    <h5 class="card-title">Ir a Usuarios</h5>
-                    <a asp-controller="Usuarios" asp-action="Index" class="btn btn-light">Ver</a>
+        <div class="col-md-6 col-lg-3">
+            <a asp-controller="Propietarios" asp-action="Index" class="home-card">
+                <div class="home-card-icon bg-primary-soft">
+                    <i class="bi bi-person-vcard"></i>
                 </div>
-            </div>
+                <div class="home-card-body">
+                    <h5 class="home-card-title">Propietarios</h5>
+                    <p class="home-card-text">Gestión de propietarios registrados</p>
+                </div>
+            </a>
         </div>
-    }
+
+        <div class="col-md-6 col-lg-3">
+            <a asp-controller="Inquilinos" asp-action="Index" class="home-card">
+                <div class="home-card-icon bg-success-soft">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="home-card-body">
+                    <h5 class="home-card-title">Inquilinos</h5>
+                    <p class="home-card-text">Administración de inquilinos</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <a asp-controller="Inmuebles" asp-action="Index" class="home-card">
+                <div class="home-card-icon bg-warning-soft">
+                    <i class="bi bi-house"></i>
+                </div>
+                <div class="home-card-body">
+                    <h5 class="home-card-title">Inmuebles</h5>
+                    <p class="home-card-text">Listado de propiedades disponibles</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <a asp-controller="TipoInmueble" asp-action="Index" class="home-card">
+                <div class="home-card-icon bg-danger-soft">
+                    <i class="bi bi-grid"></i>
+                </div>
+                <div class="home-card-body">
+                    <h5 class="home-card-title">Tipos de Inmueble</h5>
+                    <p class="home-card-text">Categorías de propiedades</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <a asp-controller="Reservas" asp-action="Index" class="home-card">
+                <div class="home-card-icon bg-info-soft">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="home-card-body">
+                    <h5 class="home-card-title">Reservas</h5>
+                    <p class="home-card-text">Control de reservas activas</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <a asp-controller="Pagos" asp-action="Index" class="home-card">
+                <div class="home-card-icon bg-secondary-soft">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div class="home-card-body">
+                    <h5 class="home-card-title">Pagos</h5>
+                    <p class="home-card-text">Historial de pagos registrados</p>
+                </div>
+            </a>
+        </div>
+
+        @if (User.IsInRole("Administrador"))
+        {
+            <div class="col-md-6 col-lg-3">
+                <a asp-controller="Usuarios" asp-action="Index" class="home-card">
+                    <div class="home-card-icon bg-dark-soft">
+                        <i class="bi bi-person-gear"></i>
+                    </div>
+                    <div class="home-card-body">
+                        <h5 class="home-card-title">Usuarios</h5>
+                        <p class="home-card-text">Administración del sistema</p>
+                    </div>
+                </a>
+            </div>
+        }
+
+    </div>
+
 </div>
+
+@section Styles {
+    <style>
+        .home-container {
+            padding-top: 20px;
+        }
+
+        .home-header {
+            margin-bottom: 30px;
+        }
+
+        .home-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 6px;
+        }
+
+        .home-subtitle {
+            color: #868e96;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .home-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+
+            padding: 20px;
+
+            color: #212529;
+            text-decoration: none;
+
+            transition: all 0.2s ease;
+            height: 100%;
+        }
+
+        .home-card:hover {
+            border-color: #0d6efd;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(13, 110, 253, 0.08);
+            color: #212529;
+        }
+
+        .home-card-icon {
+            flex-shrink: 0;
+            width: 52px;
+            height: 52px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 10px;
+
+            font-size: 1.5rem;
+        }
+
+        .bg-primary-soft {
+            background-color: #e7f1ff;
+            color: #0d6efd;
+        }
+
+        .bg-success-soft {
+            background-color: #e6f7ed;
+            color: #198754;
+        }
+
+        .bg-warning-soft {
+            background-color: #fff5e1;
+            color: #cc8a00;
+        }
+
+        .bg-danger-soft {
+            background-color: #fdecee;
+            color: #dc3545;
+        }
+
+        .bg-info-soft {
+            background-color: #e3f6fc;
+            color: #0dcaf0;
+        }
+
+        .bg-secondary-soft {
+            background-color: #eef0f2;
+            color: #6c757d;
+        }
+
+        .bg-dark-soft {
+            background-color: #e9ecef;
+            color: #212529;
+        }
+
+        .home-card-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .home-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+            color: #212529;
+        }
+
+        .home-card-text {
+            font-size: 0.82rem;
+            color: #868e96;
+            margin: 0;
+            line-height: 1.3;
+        }
+    </style>
+}

@@ -4,57 +4,192 @@
     ViewData["Title"] = "Editar Inquilino";
 }
 
-<h1>Editar Inquilino</h1>
+<div id="app-inquilino">
 
-<hr />
-<div class="row" id="app-inquilino">
-    <div class="col-md-6">
-        <form asp-action="Edit" method="post" @@submit.prevent="guardar">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="FechaRegistro" />
-
-            <div class="form-group mb-3">
-                <label asp-for="NombreCompleto" class="control-label"></label>
-                <input asp-for="NombreCompleto" class="form-control" v-model="inquilino.nombreCompleto" />
-                <span class="text-danger" v-if="errorNombreCompleto">{{ errorNombreCompleto }}</span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Dni" class="control-label"></label>
-                <input asp-for="Dni" class="form-control" v-model="inquilino.dni" />
-                <span class="text-danger" v-if="errorDni">{{ errorDni }}</span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" type="email" v-model="inquilino.email" />
-                <span class="text-danger" v-if="errorEmail">{{ errorEmail }}</span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Telefono" class="control-label"></label>
-                <input asp-for="Telefono" class="form-control" v-model="inquilino.telefono" />
-                <span class="text-danger" v-if="errorTelefono">{{ errorTelefono }}</span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Direccion" class="control-label"></label>
-                <input asp-for="Direccion" class="form-control" v-model="inquilino.direccion" />
-            </div>
-
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary" :disabled="guardando || !formularioValido">
-                    <i class="bi bi-check-circle me-1"></i>
-                    {{ guardando ? 'Guardando...' : 'Guardar' }}
-                </button>
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left me-1"></i>Volver
-                </a>
-            </div>
-        </form>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Editar Inquilino</h1>
+            <p class="page-subtitle">Modifica los datos del inquilino #@Model?.Id</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
     </div>
+
+    <form asp-action="Edit" method="post" @@submit.prevent="guardar">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="FechaRegistro" />
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card form-card">
+                    <div class="card-header">
+                        <i class="bi bi-people me-2"></i>Datos del Inquilino
+                    </div>
+                    <div class="card-body">
+
+                        <div class="form-group mb-3">
+                            <label asp-for="NombreCompleto" class="form-label"></label>
+                            <input asp-for="NombreCompleto" class="form-control" v-model="inquilino.nombreCompleto" />
+                            <span class="text-danger small" v-if="errorNombreCompleto">{{ errorNombreCompleto }}</span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Dni" class="form-label"></label>
+                                    <input asp-for="Dni" class="form-control" v-model="inquilino.dni" />
+                                    <span class="text-danger small" v-if="errorDni">{{ errorDni }}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Telefono" class="form-label"></label>
+                                    <input asp-for="Telefono" class="form-control" v-model="inquilino.telefono" />
+                                    <span class="text-danger small" v-if="errorTelefono">{{ errorTelefono }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" type="email" v-model="inquilino.email" />
+                            <span class="text-danger small" v-if="errorEmail">{{ errorEmail }}</span>
+                        </div>
+
+                        <div class="form-group mb-0">
+                            <label asp-for="Direccion" class="form-label"></label>
+                            <input asp-for="Direccion" class="form-control" v-model="inquilino.direccion" />
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card form-card">
+                    <div class="card-header">
+                        <i class="bi bi-info-circle me-2"></i>Ayuda
+                    </div>
+                    <div class="card-body">
+                        <p class="help-text">
+                            Modifique los datos necesarios. El DNI y el email son obligatorios.
+                        </p>
+                        <ul class="help-list">
+                            <li>El nombre solo admite letras y espacios.</li>
+                            <li>El DNI debe tener entre 7 y 20 caracteres.</li>
+                            <li>El telefono debe tener al menos 8 digitos.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" :disabled="guardando || !formularioValido">
+                <i class="bi bi-check-circle me-1"></i>
+                {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle me-1"></i>Cancelar
+            </a>
+        </div>
+
+    </form>
+
 </div>
+
+@section Styles {
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #212529;
+            margin: 0 0 4px 0;
+        }
+
+        .page-subtitle {
+            color: #868e96;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .form-card {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .form-card .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 14px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .form-card .card-body {
+            padding: 24px;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            transition: all 0.15s ease;
+        }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #495057;
+            margin-bottom: 12px;
+        }
+
+        .help-list {
+            font-size: 0.82rem;
+            color: #868e96;
+            padding-left: 18px;
+            margin: 0;
+        }
+
+        .help-list li {
+            margin-bottom: 6px;
+        }
+    </style>
+}
 
 @section Scripts {
     @{
@@ -97,21 +232,21 @@
                 errorEmail() {
                     if (!this.inquilino.email) return '';
                     if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(this.inquilino.email)) {
-                        return 'El email no tiene un formato válido.';
+                        return 'El email no tiene un formato valido.';
                     }
                     return '';
                 },
                 errorTelefono() {
                     if (!this.inquilino.telefono) return '';
                     if (!/^[0-9+\-\s()]+$/.test(this.inquilino.telefono)) {
-                        return 'El teléfono solo puede contener números, +, -, espacios y paréntesis.';
+                        return 'El telefono solo puede contener numeros, +, -, espacios y parentesis.';
                     }
                     const soloDigitos = this.inquilino.telefono.replace(/\D/g, '');
                     if (soloDigitos.length < 8) {
-                        return 'El teléfono debe tener al menos 8 dígitos.';
+                        return 'El telefono debe tener al menos 8 digitos.';
                     }
                     if (soloDigitos.length > 15) {
-                        return 'El teléfono no puede tener más de 15 dígitos.';
+                        return 'El telefono no puede tener mas de 15 digitos.';
                     }
                     return '';
                 },
@@ -160,7 +295,7 @@
                             document.documentElement.innerHTML = html;
                         }
                     } catch (error) {
-                        alert('Error de conexión: ' + error.message);
+                        alert('Error de conexion: ' + error.message);
                     } finally {
                         this.guardando = false;
                     }

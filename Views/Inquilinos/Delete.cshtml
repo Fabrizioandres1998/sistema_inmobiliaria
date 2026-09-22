@@ -4,37 +4,202 @@
     ViewData["Title"] = "Eliminar Inquilino";
 }
 
-<h1>Eliminar Inquilino</h1>
-
-<div class="alert alert-danger">
-    <h3>¿Estás seguro de eliminar este inquilino?</h3>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Eliminar Inquilino</h1>
+        <p class="page-subtitle">Confirmacion de eliminacion del inquilino #@Model.Id</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
 </div>
 
-<div>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.NombreCompleto)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.NombreCompleto)</dd>
+<div class="row justify-content-center">
+    <div class="col-lg-7">
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Dni)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.Dni)</dd>
+        <div class="alert-soft alert-soft-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Estas seguro de eliminar este inquilino?</strong>
+                <p class="mb-0">Esta accion no se puede deshacer.</p>
+            </div>
+        </div>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Email)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.Email)</dd>
+        <div class="card detail-card">
+            <div class="card-header">
+                <i class="bi bi-people me-2"></i>Informacion del Inquilino
+            </div>
+            <div class="card-body">
+                <dl class="detail-list">
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Telefono)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.Telefono)</dd>
+                    <div class="detail-row">
+                        <dt>ID</dt>
+                        <dd>#@Model.Id</dd>
+                    </div>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Direccion)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.Direccion)</dd>
+                    <div class="detail-row">
+                        <dt>Nombre completo</dt>
+                        <dd>@Model.NombreCompleto</dd>
+                    </div>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.FechaRegistro)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.FechaRegistro)</dd>
-    </dl>
+                    <div class="detail-row">
+                        <dt>DNI</dt>
+                        <dd>@Model.Dni</dd>
+                    </div>
 
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Eliminar" class="btn btn-danger" />
-        <a asp-action="Index" class="btn btn-secondary">Volver</a>
-    </form>
+                    <div class="detail-row">
+                        <dt>Email</dt>
+                        <dd>@Model.Email</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Telefono</dt>
+                        <dd>
+                            @if (!string.IsNullOrEmpty(Model.Telefono))
+                            {
+                                <span>@Model.Telefono</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Sin telefono</span>
+                            }
+                        </dd>
+                    </div>
+
+                </dl>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post" class="form-actions">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash me-1"></i>Eliminar Inquilino
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle me-1"></i>Cancelar
+            </a>
+        </form>
+
+    </div>
 </div>
+
+@section Styles {
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #212529;
+            margin: 0 0 4px 0;
+        }
+
+        .page-subtitle {
+            color: #868e96;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .alert-soft {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .alert-soft-danger {
+            background-color: #fdecee;
+            border: 1px solid #f8d4d8;
+            color: #842029;
+        }
+
+        .alert-soft i {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        .alert-soft strong {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .alert-soft p {
+            font-size: 0.85rem;
+            margin: 0;
+            opacity: 0.85;
+        }
+
+        .detail-card {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .detail-card .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 14px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .detail-card .card-body {
+            padding: 8px 20px;
+        }
+
+        .detail-list {
+            margin: 0;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row dt {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #868e96;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .detail-row dd {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #212529;
+            margin: 0;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+    </style>
+}
