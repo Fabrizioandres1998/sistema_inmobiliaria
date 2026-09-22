@@ -4,29 +4,188 @@
     ViewData["Title"] = "Anular Pago";
 }
 
-<h1>Anular Pago</h1>
-
-<div class="alert alert-warning">
-    <h4>¿Estás seguro de anular este pago?</h4>
-    <p>Esta acción no se puede deshacer.</p>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Anular Pago</h1>
+        <p class="page-subtitle">Confirmacion de anulacion del pago #@Model.Id</p>
+    </div>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
 </div>
 
-<div>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-3">Concepto</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.Concepto)</dd>
+<div class="row justify-content-center">
+    <div class="col-lg-7">
 
-        <dt class="col-sm-3">Importe</dt>
-        <dd class="col-sm-9">@Model.Importe.ToString("N2")</dd>
+        <div class="alert-soft alert-soft-warning">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Estas seguro de anular este pago?</strong>
+                <p class="mb-0">Esta accion no se puede deshacer.</p>
+            </div>
+        </div>
 
-        <dt class="col-sm-3">Fecha de Pago</dt>
-        <dd class="col-sm-9">@Model.FechaPago.ToShortDateString()</dd>
-    </dl>
+        <div class="card detail-card">
+            <div class="card-header">
+                <i class="bi bi-cash-stack me-2"></i>Informacion del Pago
+            </div>
+            <div class="card-body">
+                <dl class="detail-list">
+
+                    <div class="detail-row">
+                        <dt>ID</dt>
+                        <dd>#@Model.Id</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Concepto</dt>
+                        <dd>@Model.Concepto</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Importe</dt>
+                        <dd class="text-success fw-semibold">$@Model.Importe.ToString("N2")</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Fecha de pago</dt>
+                        <dd>@Model.FechaPago.ToString("dd/MM/yyyy")</dd>
+                    </div>
+
+                </dl>
+            </div>
+        </div>
+
+        <form asp-action="Anular" method="post" class="form-actions">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-x-circle me-1"></i>Anular Pago
+            </button>
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Cancelar
+            </a>
+        </form>
+
+    </div>
 </div>
 
-<form asp-action="Anular" method="post">
-    <input type="hidden" asp-for="Id" />
-    <input type="submit" value="Anular" class="btn btn-danger" />
-    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Cancelar</a>
-</form>
+@section Styles {
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #212529;
+            margin: 0 0 4px 0;
+        }
+
+        .page-subtitle {
+            color: #868e96;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .alert-soft {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .alert-soft-warning {
+            background-color: #fff5e1;
+            border: 1px solid #ffe4b3;
+            color: #664d03;
+        }
+
+        .alert-soft i {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        .alert-soft strong {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .alert-soft p {
+            font-size: 0.85rem;
+            margin: 0;
+            opacity: 0.85;
+        }
+
+        .detail-card {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .detail-card .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 14px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .detail-card .card-body {
+            padding: 8px 20px;
+        }
+
+        .detail-list {
+            margin: 0;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row dt {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #868e96;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .detail-row dd {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #212529;
+            margin: 0;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+    </style>
+}

@@ -23,67 +23,86 @@
 }
 
 <div id="app-propietarios">
-    <h1>Propietarios</h1>
 
-    <p>
-        <a asp-action="Create" class="btn btn-primary" title="Crear Nuevo Propietario">
-            <i class="bi bi-plus-circle"></i>
-        </a>
-    </p>
-
-    <div class="input-group mb-3">
-        <input type="text" class="form-control" placeholder="Buscar por nombre, DNI o email..." v-model="busqueda" />
-        <button type="button" class="btn btn-outline-secondary" v-if="busqueda" @@click="busqueda = ''">
-            <i class="bi bi-x-circle"></i>
-        </button>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Propietarios</h1>
+            <p class="page-subtitle">Gestion de propietarios registrados</p>
+        </div>
+        <div class="page-actions">
+            <a asp-action="Create" class="btn btn-primary" title="Crear Nuevo Propietario">
+                <i class="bi bi-plus-circle"></i> Crear Nuevo Propietario
+            </a>
+        </div>
     </div>
 
-    <table class="table table-striped align-middle">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>DNI</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-                <th>Fecha Registro</th>
-                <th class="text-nowrap">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr v-if="coincide('@item.NombreCompleto', '@item.Dni', '@item.Email')">
-                    <td>@Html.DisplayFor(m => item.NombreCompleto)</td>
-                    <td>@Html.DisplayFor(m => item.Dni)</td>
-                    <td>@Html.DisplayFor(m => item.Email)</td>
-                    <td>@Html.DisplayFor(m => item.Telefono)</td>
-                    <td>@Html.DisplayFor(m => item.FechaRegistro)</td>
-                    <td class="text-nowrap">
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Editar">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Ver detalles">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                        @if (User.IsInRole("Administrador"))
-                        {
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Eliminar">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="card filter-card">
+        <div class="card-body">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control border-start-0" placeholder="Buscar por nombre, DNI o email..."
+                       v-model="busqueda" />
+                <button type="button" class="btn btn-outline-secondary" v-if="busqueda" @@click="busqueda = ''">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 
-    <div class="d-flex justify-content-center">
+    <div class="card table-card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>DNI</th>
+                        <th>Email</th>
+                        <th>Telefono</th>
+                        <th>Fecha Registro</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr v-if="coincide('@item.NombreCompleto', '@item.Dni', '@item.Email')">
+                            <td class="fw-semibold">@Html.DisplayFor(m => item.NombreCompleto)</td>
+                            <td>@Html.DisplayFor(m => item.Dni)</td>
+                            <td>@Html.DisplayFor(m => item.Email)</td>
+                            <td>@Html.DisplayFor(m => item.Telefono)</td>
+                            <td class="text-muted">@item.FechaRegistro.ToString("dd/MM/yyyy")</td>
+                            <td class="text-nowrap text-end">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-icon btn-warning"
+                                   title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-icon btn-info"
+                                   title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                @if (User.IsInRole("Administrador"))
+                                {
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-icon btn-danger"
+                                       title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center mt-4">
         @Html.PagedListPager(Model, page => Url.Action("Index", new
         {
             page,
             pageSize = Model.PageSize,
-            searchTerm =
-        ViewBag.SearchTerm
+            searchTerm = ViewBag.SearchTerm
         }),
             new PagedListRenderOptions
             {
@@ -91,7 +110,143 @@
                 PageClasses = new[] { "page-link" }
             })
     </div>
+
 </div>
+
+@section Styles {
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #212529;
+            margin: 0 0 4px 0;
+        }
+
+        .page-subtitle {
+            color: #868e96;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-card,
+        .table-card {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .filter-card .card-body {
+            padding: 16px;
+        }
+
+        .table-card {
+            overflow: hidden;
+        }
+
+        .table-card .table {
+            margin: 0;
+        }
+
+        .table-card .table thead th {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 14px 16px;
+            border-top: none;
+        }
+
+        .table-card .table tbody td {
+            padding: 14px 16px;
+            border-color: #f1f3f5;
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .table-card .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            margin-left: 3px;
+            border: none;
+            color: #ffffff;
+            transition: all 0.15s ease;
+        }
+
+        .btn-icon:hover {
+            transform: translateY(-1px);
+            color: #ffffff;
+        }
+
+        .btn-icon.btn-warning {
+            background-color: #ffc107;
+        }
+
+        .btn-icon.btn-warning:hover {
+            background-color: #e0a800;
+        }
+
+        .btn-icon.btn-info {
+            background-color: #0dcaf0;
+        }
+
+        .btn-icon.btn-info:hover {
+            background-color: #0aa2c0;
+        }
+
+        .btn-icon.btn-danger {
+            background-color: #dc3545;
+        }
+
+        .btn-icon.btn-danger:hover {
+            background-color: #b02a37;
+        }
+
+        .page-link {
+            border-radius: 8px;
+            margin: 0 3px;
+            color: #495057;
+            border: 1px solid #e9ecef;
+        }
+
+        .page-link:hover {
+            background-color: #f1f3f5;
+            color: #0d6efd;
+        }
+
+        .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+    </style>
+}
 
 @section Scripts {
     <script>

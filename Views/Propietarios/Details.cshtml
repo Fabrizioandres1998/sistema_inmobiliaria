@@ -4,32 +4,166 @@
     ViewData["Title"] = "Detalles del Propietario";
 }
 
-<h1>Detalles del Propietario</h1>
-
-<div>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.NombreCompleto)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.NombreCompleto)</dd>
-
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Dni)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.Dni)</dd>
-
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Email)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.Email)</dd>
-
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Telefono)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.Telefono)</dd>
-
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Direccion)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.Direccion)</dd>
-
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.FechaRegistro)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.FechaRegistro)</dd>
-    </dl>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Detalles del Propietario</h1>
+        <p class="page-subtitle">Informacion completa del propietario #@Model.Id</p>
+    </div>
+    <div class="page-actions">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
 </div>
 
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
-    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card detail-card">
+            <div class="card-header">
+                <i class="bi bi-person-vcard me-2"></i>Informacion del Propietario
+            </div>
+            <div class="card-body">
+                <dl class="detail-list">
+
+                    <div class="detail-row">
+                        <dt>Nombre completo</dt>
+                        <dd>@Model.NombreCompleto</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>DNI</dt>
+                        <dd>@Model.Dni</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Email</dt>
+                        <dd>@Model.Email</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Telefono</dt>
+                        <dd>
+                            @if (!string.IsNullOrEmpty(Model.Telefono))
+                            {
+                                <span>@Model.Telefono</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Sin telefono</span>
+                            }
+                        </dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Direccion</dt>
+                        <dd>
+                            @if (!string.IsNullOrEmpty(Model.Direccion))
+                            {
+                                <span>@Model.Direccion</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Sin direccion</span>
+                            }
+                        </dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Fecha de registro</dt>
+                        <dd>@Model.FechaRegistro.ToString("dd/MM/yyyy")</dd>
+                    </div>
+
+                </dl>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Styles {
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #212529;
+            margin: 0 0 4px 0;
+        }
+
+        .page-subtitle {
+            color: #868e96;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .detail-card {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .detail-card .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 14px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .detail-card .card-body {
+            padding: 8px 20px;
+        }
+
+        .detail-list {
+            margin: 0;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row dt {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #868e96;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .detail-row dd {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #212529;
+            margin: 0;
+            text-align: right;
+            word-break: break-word;
+        }
+    </style>
+}
