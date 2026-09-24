@@ -4,84 +4,216 @@
     ViewData["Title"] = "Crear Usuario";
 }
 
-<h1>Crear Usuario</h1>
+<div id="app-usuario">
 
-<hr />
-<div class="row" id="app-usuario">
-    <div class="col-md-6">
-        <form asp-action="Create" method="post" @@submit.prevent="guardar">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Crear Usuario</h1>
+            <p class="page-subtitle">Registra un nuevo usuario en el sistema</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="NombreCompleto" class="control-label"></label>
-                <input asp-for="NombreCompleto" class="form-control" v-model="usuario.nombreCompleto"
-                @@input="validarNombre" />
+    <form asp-action="Create" method="post" @@submit.prevent="guardar">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                <span class="text-danger" v-if="errores.nombreCompleto">
-                    {{ errores.nombreCompleto }}
-                </span>
-            </div>
+        <div class="row g-4">
+            <div class="col-lg-8">
 
-            <div class="form-group mb-3">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" type="email" v-model="usuario.email"
-                @@input="validarEmail" />
+                <div class="card form-card">
+                    <div class="card-header">
+                        <i class="bi bi-person me-2"></i>Datos del Usuario
+                    </div>
+                    <div class="card-body">
 
-                <span class="text-danger" v-if="errores.email">
-                    {{ errores.email }}
-                </span>
-            </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="NombreCompleto" class="form-label"></label>
+                            <input asp-for="NombreCompleto" class="form-control" v-model="usuario.nombreCompleto"
+                                   @@input="validarNombre" />
+                            <span class="text-danger small" v-if="errores.nombreCompleto">{{ errores.nombreCompleto }}</span>
+                        </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Password" class="control-label"></label>
-                <input asp-for="Password" class="form-control" type="password" v-model="usuario.password" />
-                <span class="text-danger" v-if="errores.password">{{ errores.password }}</span>
+                        <div class="form-group mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" type="email" v-model="usuario.email"
+                                   @@input="validarEmail" />
+                            <span class="text-danger small" v-if="errores.email">{{ errores.email }}</span>
+                        </div>
 
-                <div class="progress mt-2" style="height: 8px;" v-if="usuario.password">
-                    <div class="progress-bar" :class="colorFortaleza" :style="{ width: porcentajeFortaleza + '%' }">
+                        <div class="form-group mb-0">
+                            <label asp-for="Rol" class="form-label"></label>
+                            <select asp-for="Rol" class="form-control" v-model="usuario.rol">
+                                <option value="">-- Seleccione un rol --</option>
+                                <option value="Administrador">Administrador</option>
+                                <option value="Empleado">Empleado</option>
+                            </select>
+                            <span class="text-danger small" v-if="errores.rol">{{ errores.rol }}</span>
+                        </div>
+
                     </div>
                 </div>
-                <small class="text-muted" v-if="usuario.password">
-                    Fortaleza: <strong>{{ textoFortaleza }}</strong>
-                </small>
+
+                <div class="card form-card mt-4">
+                    <div class="card-header">
+                        <i class="bi bi-shield-lock me-2"></i>Contrasena
+                    </div>
+                    <div class="card-body">
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Password" class="form-label"></label>
+                            <input asp-for="Password" class="form-control" type="password" v-model="usuario.password" />
+                            <span class="text-danger small" v-if="errores.password">{{ errores.password }}</span>
+
+                            <div class="progress mt-2" style="height: 8px;" v-if="usuario.password">
+                                <div class="progress-bar" :class="colorFortaleza" :style="{ width: porcentajeFortaleza + '%' }"></div>
+                            </div>
+                            <small class="text-muted" v-if="usuario.password">
+                                Fortaleza: <strong>{{ textoFortaleza }}</strong>
+                            </small>
+                        </div>
+
+                        <div class="form-group mb-0">
+                            <label class="form-label">Confirmar Contrasena</label>
+                            <input class="form-control" type="password" v-model="confirmarPassword" />
+                            <span class="text-danger small" v-if="errores.confirmarPassword">{{ errores.confirmarPassword }}</span>
+                            <small class="text-success d-block mt-1" v-if="confirmarPassword && usuario.password === confirmarPassword">
+                                <i class="bi bi-check-circle me-1"></i>Las contrasenas coinciden
+                            </small>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
 
-            <div class="form-group mb-3">
-                <label class="control-label">Confirmar Contraseña</label>
-                <input class="form-control" type="password" v-model="confirmarPassword" />
-                <span class="text-danger" v-if="errores.confirmarPassword">{{ errores.confirmarPassword }}</span>
-                <small class="text-success" v-if="confirmarPassword && usuario.password === confirmarPassword">
-                    <i class="bi bi-check-circle me-1"></i>Las contraseñas coinciden
-                </small>
+            <div class="col-lg-4">
+                <div class="card form-card">
+                    <div class="card-header">
+                        <i class="bi bi-info-circle me-2"></i>Ayuda
+                    </div>
+                    <div class="card-body">
+                        <p class="help-text">
+                            Complete los datos del usuario. El nombre, email, contrasena y rol son obligatorios.
+                        </p>
+                        <ul class="help-list">
+                            <li>El nombre debe tener al menos 3 caracteres.</li>
+                            <li>El email debe tener un formato valido.</li>
+                            <li>La contrasena debe tener al menos 6 caracteres.</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Rol" class="control-label"></label>
-                <select asp-for="Rol" class="form-control" v-model="usuario.rol">
-                    <option value="">-- Seleccione un rol --</option>
-                    <option value="Administrador">Administrador</option>
-                    <option value="Empleado">Empleado</option>
-                </select>
-                <span class="text-danger" v-if="errores.rol">{{ errores.rol }}</span>
-            </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" :disabled="guardando">
+                <i class="bi bi-check-circle me-1"></i>
+                {{ guardando ? 'Creando...' : 'Crear Usuario' }}
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle me-1"></i>Cancelar
+            </a>
+        </div>
 
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary" :disabled="guardando">
-                    <i class="bi bi-check-circle me-1"></i>
-                    {{ guardando ? 'Creando...' : 'Crear' }}
-                </button>
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left me-1"></i>Cancelar
-                </a>
-            </div>
-        </form>
-    </div>
+    </form>
+
 </div>
 
+@section Styles {
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #212529;
+            margin: 0 0 4px 0;
+        }
+
+        .page-subtitle {
+            color: #868e96;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .form-card {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .form-card .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 14px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .form-card .card-body {
+            padding: 24px;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            transition: all 0.15s ease;
+        }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #495057;
+            margin-bottom: 12px;
+        }
+
+        .help-list {
+            font-size: 0.82rem;
+            color: #868e96;
+            padding-left: 18px;
+            margin: 0;
+        }
+
+        .help-list li {
+            margin-bottom: 6px;
+        }
+    </style>
+}
+
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 
     <script>
         const { createApp } = Vue;
@@ -121,31 +253,52 @@
                     if (/[0-9]/.test(pwd)) puntos++;
                     if (/[^A-Za-z0-9]/.test(pwd)) puntos++;
 
-                    if (puntos <= 1) return { porcentaje: 20, texto: 'Muy débil', color: 'bg-danger' };
-                    if (puntos === 2) return { porcentaje: 40, texto: 'Débil', color: 'bg-danger' };
+                    if (puntos <= 1) return { porcentaje: 20, texto: 'Muy debil', color: 'bg-danger' };
+                    if (puntos === 2) return { porcentaje: 40, texto: 'Debil', color: 'bg-danger' };
                     if (puntos === 3) return { porcentaje: 60, texto: 'Media', color: 'bg-warning' };
                     if (puntos === 4) return { porcentaje: 80, texto: 'Fuerte', color: 'bg-info' };
                     return { porcentaje: 100, texto: 'Muy fuerte', color: 'bg-success' };
+                },
+                validarNombre() {
+                    if (!this.usuario.nombreCompleto.trim()) {
+                        this.errores.nombreCompleto = "El nombre completo es obligatorio.";
+                    } else if (this.usuario.nombreCompleto.trim().length < 3) {
+                        this.errores.nombreCompleto = "El nombre debe tener al menos 3 caracteres.";
+                    } else {
+                        delete this.errores.nombreCompleto;
+                    }
+                },
+                validarEmail() {
+                    const email = this.usuario.email.trim();
+                    if (!email) {
+                        this.errores.email = "El email es obligatorio.";
+                    } else if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+                        this.errores.email = "El email no tiene un formato valido.";
+                    } else {
+                        delete this.errores.email;
+                    }
                 },
                 validar() {
                     this.errores = {};
                     if (!this.usuario.nombreCompleto) {
                         this.errores.nombreCompleto = "El nombre completo es obligatorio.";
+                    } else if (this.usuario.nombreCompleto.length < 3) {
+                        this.errores.nombreCompleto = "El nombre debe tener al menos 3 caracteres.";
                     }
                     if (!this.usuario.email) {
                         this.errores.email = "El email es obligatorio.";
                     } else if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(this.usuario.email)) {
-                        this.errores.email = "El email no tiene un formato válido.";
+                        this.errores.email = "El email no tiene un formato valido.";
                     }
                     if (!this.usuario.password) {
-                        this.errores.password = "La contraseña es obligatoria.";
+                        this.errores.password = "La contrasena es obligatoria.";
                     } else if (this.usuario.password.length < 6) {
-                        this.errores.password = "La contraseña debe tener al menos 6 caracteres.";
+                        this.errores.password = "La contrasena debe tener al menos 6 caracteres.";
                     }
                     if (!this.confirmarPassword) {
-                        this.errores.confirmarPassword = "Debe confirmar la contraseña.";
+                        this.errores.confirmarPassword = "Debe confirmar la contrasena.";
                     } else if (this.usuario.password !== this.confirmarPassword) {
-                        this.errores.confirmarPassword = "Las contraseñas no coinciden.";
+                        this.errores.confirmarPassword = "Las contrasenas no coinciden.";
                     }
                     if (!this.usuario.rol) {
                         this.errores.rol = "Debe seleccionar un rol.";
@@ -175,31 +328,11 @@
                             document.documentElement.innerHTML = html;
                         }
                     } catch (error) {
-                        alert('Error de conexión: ' + error.message);
+                        alert('Error de conexion: ' + error.message);
                     } finally {
                         this.guardando = false;
                     }
-                }, validarNombre() {
-                    if (!this.usuario.nombreCompleto.trim()) {
-                        this.errores.nombreCompleto = "El nombre completo es obligatorio.";
-                    } else if (this.usuario.nombreCompleto.trim().length < 3) {
-                        this.errores.nombreCompleto = "El nombre debe tener al menos 3 caracteres.";
-                    } else {
-                        delete this.errores.nombreCompleto;
-                    }
-                },
-
-                validarEmail() {
-                    const email = this.usuario.email.trim();
-
-                    if (!email) {
-                        this.errores.email = "El email es obligatorio.";
-                    } else if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
-                        this.errores.email = "El email no tiene un formato válido.";
-                    } else {
-                        delete this.errores.email;
-                    }
-                },
+                }
             }
         }).mount('#app-usuario');
     </script>

@@ -4,34 +4,241 @@
     ViewData["Title"] = "Crear Tipo de Inmueble";
 }
 
-<h1>Crear Tipo de Inmueble</h1>
+<div id="app-tipo">
 
-<hr />
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Nombre" class="control-label"></label>
-                <input asp-for="Nombre" class="form-control" />
-                <span asp-validation-for="Nombre" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Descripcion" class="control-label"></label>
-                <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Descripcion" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <input type="submit" value="Crear" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Volver</a>
-            </div>
-        </form>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Crear Tipo de Inmueble</h1>
+            <p class="page-subtitle">Registra un nuevo tipo de inmueble en el sistema</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
     </div>
-</div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+    <form asp-action="Create" method="post" @@submit.prevent="guardar">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card form-card">
+                    <div class="card-header">
+                        <i class="bi bi-grid me-2"></i>Datos del Tipo
+                    </div>
+                    <div class="card-body">
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Nombre" class="form-label"></label>
+                            <input asp-for="Nombre" class="form-control" v-model="tipo.nombre"
+                            @@input="tocado.nombre = true" />
+                            <span class="text-danger small" v-if="errorNombre && (tocado.nombre || intentoGuardar)">{{
+                                errorNombre }}</span>
+                            </div>
+
+                            <div class="form-group mb-0">
+                                <label asp-for="Descripcion" class="form-label"></label>
+                                <textarea asp-for="Descripcion" class="form-control" rows="4" v-model="tipo.descripcion"
+                                @@input="tocado.descripcion = true"></textarea>
+                                <span class="text-danger small"
+                                      v-if="errorDescripcion && (tocado.descripcion || intentoGuardar)">{{ errorDescripcion
+                                    }}</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card form-card">
+                            <div class="card-header">
+                                <i class="bi bi-info-circle me-2"></i>Ayuda
+                            </div>
+                            <div class="card-body">
+                                <p class="help-text">
+                                    Complete los datos del tipo de inmueble. El nombre es obligatorio.
+                                </p>
+                                <ul class="help-list">
+                                    <li>El nombre no puede superar los 100 caracteres.</li>
+                                    <li>La descripcion es opcional.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" :disabled="guardando">
+                        <i class="bi bi-check-circle me-1"></i>
+                        {{ guardando ? 'Creando...' : 'Crear Tipo' }}
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Cancelar
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+
+        @section Styles {
+            <style>
+                .page-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    flex-wrap: wrap;
+                    gap: 12px;
+                    margin-bottom: 24px;
+                }
+
+                .page-title {
+                    font-size: 1.75rem;
+                    font-weight: 700;
+                    color: #212529;
+                    margin: 0 0 4px 0;
+                }
+
+                .page-subtitle {
+                    color: #868e96;
+                    font-size: 0.9rem;
+                    margin: 0;
+                }
+
+                .form-card {
+                    background-color: #ffffff;
+                    border: 1px solid #e9ecef;
+                    border-radius: 12px;
+                    overflow: hidden;
+                }
+
+                .form-card .card-header {
+                    background-color: #f8f9fa;
+                    border-bottom: 1px solid #e9ecef;
+                    padding: 14px 20px;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    color: #495057;
+                }
+
+                .form-card .card-body {
+                    padding: 24px;
+                }
+
+                .form-label {
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    color: #495057;
+                    margin-bottom: 6px;
+                }
+
+                .form-control {
+                    border-radius: 8px;
+                    border: 1px solid #dee2e6;
+                    padding: 10px 14px;
+                    font-size: 0.9rem;
+                    transition: all 0.15s ease;
+                }
+
+                .form-control:focus {
+                    border-color: #0d6efd;
+                    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+                }
+
+                .form-actions {
+                    display: flex;
+                    gap: 8px;
+                    margin-top: 24px;
+                    padding-top: 20px;
+                    border-top: 1px solid #e9ecef;
+                }
+
+                .help-text {
+                    font-size: 0.85rem;
+                    color: #495057;
+                    margin-bottom: 12px;
+                }
+
+                .help-list {
+                    font-size: 0.82rem;
+                    color: #868e96;
+                    padding-left: 18px;
+                    margin: 0;
+                }
+
+                .help-list li {
+                    margin-bottom: 6px;
+                }
+            </style>
+        }
+
+        @section Scripts {
+            @{
+                await Html.RenderPartialAsync("_ValidationScriptsPartial");
+            }
+
+            <script>
+                const { createApp } = Vue;
+
+                createApp({
+                    data() {
+                        return {
+                            tipo: {
+                                nombre: '',
+                                descripcion: ''
+                            },
+                            tocado: {
+                                nombre: false,
+                                descripcion: false
+                            },
+                            intentoGuardar: false,
+                            guardando: false
+                        }
+                    },
+                    computed: {
+                        errorNombre() {
+                            if (!this.tipo.nombre) return 'El nombre es obligatorio.';
+                            if (this.tipo.nombre.length > 100) return 'El nombre no puede superar los 100 caracteres.';
+                            return '';
+                        },
+                        errorDescripcion() {
+                            if (this.tipo.descripcion && this.tipo.descripcion.length > 500) {
+                                return 'La descripcion no puede superar los 500 caracteres.';
+                            }
+                            return '';
+                        },
+                        formularioValido() {
+                            return !this.errorNombre && !this.errorDescripcion;
+                        }
+                    },
+                    methods: {
+                        async guardar() {
+                            this.intentoGuardar = true;
+                            if (!this.formularioValido) return;
+                            this.guardando = true;
+                            try {
+                                const form = document.querySelector('form');
+                                const formData = new FormData(form);
+                                formData.set('Nombre', this.tipo.nombre);
+                                formData.set('Descripcion', this.tipo.descripcion);
+
+                                const response = await fetch(form.action, {
+                                    method: 'POST',
+                                    body: formData
+                                });
+
+                                if (response.redirected) {
+                                    window.location.href = response.url;
+                                } else {
+                                    const html = await response.text();
+                                    document.documentElement.innerHTML = html;
+                                }
+                            } catch (error) {
+                                alert('Error de conexion: ' + error.message);
+                            } finally {
+                                this.guardando = false;
+                            }
+                        }
+                    }
+                }).mount('#app-tipo');
+            </script>
+        }

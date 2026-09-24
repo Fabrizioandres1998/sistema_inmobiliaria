@@ -4,33 +4,303 @@
     ViewData["Title"] = "Editar Mi Perfil";
 }
 
-<h1>Editar Mi Perfil</h1>
+<div id="app-perfil">
 
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="EditarMiPerfil">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="Rol" />
-            <input type="hidden" asp-for="Password" />
-
-            <div class="form-group mb-3">
-                <label asp-for="NombreCompleto" class="control-label"></label>  <!-- ← CORREGIDO -->
-                <input asp-for="NombreCompleto" class="form-control" />          <!-- ← CORREGIDO -->
-                <span asp-validation-for="NombreCompleto" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <input type="submit" value="Guardar" class="btn btn-primary" />
-                <a asp-action="MiPerfil" class="btn btn-secondary">Cancelar</a>
-            </div>
-        </form>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Editar Mi Perfil</h1>
+            <p class="page-subtitle">Modifica tu informacion personal</p>
+        </div>
+        <a asp-action="MiPerfil" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
     </div>
+
+    <form asp-action="EditarMiPerfil" method="post" @@submit.prevent="guardar">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Rol" />
+        <input type="hidden" asp-for="Password" />
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card form-card">
+                    <div class="card-header">
+                        <i class="bi bi-person-vcard me-2"></i>Datos Personales
+                    </div>
+                    <div class="card-body">
+
+                        <div class="form-group mb-3">
+                            <label asp-for="NombreCompleto" class="form-label"></label>
+                            <input asp-for="NombreCompleto" class="form-control" v-model="perfil.nombreCompleto" />
+                            <span class="text-danger small" v-if="errorNombreCompleto">{{ errorNombreCompleto }}</span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" type="email" v-model="perfil.email" />
+                            <span class="text-danger small" v-if="errorEmail">{{ errorEmail }}</span>
+                        </div>
+
+                        <div class="form-group mb-0">
+                            <label asp-for="Avatar" class="form-label">Avatar (URL)</label>
+                            <input asp-for="Avatar" class="form-control"
+                                   placeholder="https://ejemplo.com/avatar.jpg"
+                                   v-model="perfil.avatar" />
+                            <small class="text-muted d-block mt-1">Pega la URL de tu imagen de perfil.</small>
+                            <span class="text-danger small" v-if="errorAvatar">{{ errorAvatar }}</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card form-card">
+                    <div class="card-header">
+                        <i class="bi bi-person-circle me-2"></i>Vista Previa
+                    </div>
+                    <div class="card-body text-center">
+                        <img v-if="perfil.avatar" :src="perfil.avatar" alt="Avatar" class="avatar-preview" />
+                        <div v-else class="avatar-preview-placeholder">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <p class="avatar-preview-name">{{ perfil.nombreCompleto || 'Sin nombre' }}</p>
+                    </div>
+                </div>
+
+                <div class="card form-card mt-4">
+                    <div class="card-header">
+                        <i class="bi bi-info-circle me-2"></i>Ayuda
+                    </div>
+                    <div class="card-body">
+                        <p class="help-text">
+                            Modifica tu informacion personal. El nombre y el email son obligatorios.
+                        </p>
+                        <ul class="help-list">
+                            <li>El nombre solo admite letras y espacios.</li>
+                            <li>El email debe tener un formato valido.</li>
+                            <li>El avatar debe ser una URL valida (jpg, png, etc).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" :disabled="guardando">
+                <i class="bi bi-check-circle me-1"></i>
+                {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
+            </button>
+            <a asp-action="MiPerfil" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle me-1"></i>Cancelar
+            </a>
+        </div>
+
+    </form>
+
 </div>
+
+@section Styles {
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #212529;
+            margin: 0 0 4px 0;
+        }
+
+        .page-subtitle {
+            color: #868e96;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .form-card {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .form-card .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 14px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .form-card .card-body {
+            padding: 24px;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            transition: all 0.15s ease;
+        }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #495057;
+            margin-bottom: 12px;
+        }
+
+        .help-list {
+            font-size: 0.82rem;
+            color: #868e96;
+            padding-left: 18px;
+            margin: 0;
+        }
+
+        .help-list li {
+            margin-bottom: 6px;
+        }
+
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid #e7f1ff;
+            margin-bottom: 12px;
+        }
+
+        .avatar-preview-placeholder {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 12px auto;
+            background-color: #e7f1ff;
+            color: #0d6efd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+        }
+
+        .avatar-preview-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #495057;
+            margin: 0;
+        }
+    </style>
+}
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    perfil: {
+                        nombreCompleto: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model?.NombreCompleto ?? "")),
+                        email: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model?.Email ?? "")),
+                        avatar: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model?.Avatar ?? ""))
+                    },
+                    guardando: false
+                }
+            },
+            computed: {
+                errorNombreCompleto() {
+                    if (!this.perfil.nombreCompleto) return '';
+                    if (this.perfil.nombreCompleto.length > 100) return 'El nombre no puede superar los 100 caracteres.';
+                    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s']+$/.test(this.perfil.nombreCompleto)) {
+                        return 'El nombre solo puede contener letras y espacios.';
+                    }
+                    return '';
+                },
+                errorEmail() {
+                    if (!this.perfil.email) return '';
+                    if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(this.perfil.email)) {
+                        return 'El email no tiene un formato valido.';
+                    }
+                    return '';
+                },
+                errorAvatar() {
+                    if (!this.perfil.avatar) return '';
+                    if (!/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)$/i.test(this.perfil.avatar)) {
+                        return 'El avatar debe ser una URL valida que termine en jpg, png, gif, webp o svg.';
+                    }
+                    return '';
+                },
+                formularioValido() {
+                    return this.perfil.nombreCompleto &&
+                        this.perfil.nombreCompleto.length <= 100 &&
+                        /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s']+$/.test(this.perfil.nombreCompleto) &&
+                        this.perfil.email &&
+                        /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(this.perfil.email) &&
+                        (!this.perfil.avatar ||
+                            /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)$/i.test(this.perfil.avatar));
+                }
+            },
+            methods: {
+                async guardar() {
+                    if (!this.formularioValido) return;
+                    this.guardando = true;
+                    try {
+                        const form = document.querySelector('form');
+                        const formData = new FormData(form);
+                        formData.set('NombreCompleto', this.perfil.nombreCompleto);
+                        formData.set('Email', this.perfil.email);
+                        formData.set('Avatar', this.perfil.avatar);
+
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        } else {
+                            const html = await response.text();
+                            document.documentElement.innerHTML = html;
+                        }
+                    } catch (error) {
+                        alert('Error de conexion: ' + error.message);
+                    } finally {
+                        this.guardando = false;
+                    }
+                }
+            }
+        }).mount('#app-perfil');
+    </script>
+}
