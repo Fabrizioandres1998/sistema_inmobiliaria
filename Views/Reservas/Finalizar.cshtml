@@ -4,8 +4,6 @@
     ViewData["Title"] = "Finalizar Reserva";
 }
 
-<h1>Finalizar Reserva</h1>
-
 @if (TempData["Mensaje"] != null)
 {
     <div class="alert alert-@(TempData["Tipo"] ?? "success") alert-dismissible fade show" role="alert">
@@ -14,199 +12,372 @@
     </div>
 }
 
-<hr />
-<div class="row" id="app-finalizar">
-    <div class="col-md-8">
-        <div class="alert alert-warning">
-            <h4><i class="bi bi-exclamation-triangle me-2"></i>¿Estás seguro de finalizar esta reserva?</h4>
-            <p>Se calculará la multa correspondiente según el tiempo transcurrido.</p>
+<div id="app-finalizar">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Finalizar Reserva</h1>
+            <p class="page-subtitle">Confirmacion y calculo de multa de la reserva #@Model.Id</p>
         </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
 
-        <div class="card mb-3">
-            <div class="card-header bg-light">
-                <strong><i class="bi bi-info-circle me-2"></i>Datos de la Reserva</strong>
-            </div>
-            <div class="card-body">
-                <div class="row mb-2">
-                    <div class="col-4 text-muted">Inmueble:</div>
-                    <div class="col-8">@Model.InmuebleDireccion</div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-4 text-muted">Inquilino:</div>
-                    <div class="col-8">@Model.InquilinoNombre</div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-4 text-muted">Fecha Inicio:</div>
-                    <div class="col-8">@Model.FechaInicio.ToString("dd/MM/yyyy")</div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-4 text-muted">Fecha Fin:</div>
-                    <div class="col-8">@Model.FechaFin.ToString("dd/MM/yyyy")</div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-4 text-muted">Monto por Día:</div>
-                    <div class="col-8">$@Model.MontoPorDia.ToString("N2")</div>
+    <div class="row g-4">
+
+        <div class="col-lg-8">
+
+            <div class="alert-soft alert-soft-warning">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>
+                    <strong>Estas seguro de finalizar esta reserva?</strong>
+                    <p class="mb-0">Se calculara la multa correspondiente segun el tiempo transcurrido.</p>
                 </div>
             </div>
-        </div>
 
-        <form asp-action="Finalizar" asp-route-id="@Model.Id" method="post" @@submit.prevent="guardar">
-            @Html.AntiForgeryToken()
-            <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="IdUsuarioTerminacion" />
-            <input type="hidden" asp-for="MultaCalculada" :value="multa" />
-
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group mb-3">
-                <label asp-for="FechaTerminacion" class="control-label"></label>
-                <input asp-for="FechaTerminacion" class="form-control" type="date" v-model="fechaTerminacion" />
-                <span class="text-danger" v-if="errores.fechaTerminacion">{{ errores.fechaTerminacion }}</span>
-            </div>
-
-            <div class="card mb-3" v-if="fechaTerminacion">
-                <div class="card-header bg-light">
-                    <strong><i class="bi bi-calculator me-2"></i>Cálculo de Multa</strong>
+            <div class="card form-card">
+                <div class="card-header">
+                    <i class="bi bi-info-circle me-2"></i>Datos de la Reserva
                 </div>
                 <div class="card-body">
-                    <div class="row mb-2">
-                        <div class="col-6">
-                            <i class="bi bi-calendar-event me-2 text-primary"></i>Días originales:
+                    <dl class="detail-list">
+
+                        <div class="detail-row">
+                            <dt>Inmueble</dt>
+                            <dd>@Model.InmuebleDireccion</dd>
                         </div>
-                        <div class="col-6 text-end"><strong>{{ diasOriginales }}</strong></div>
+
+                        <div class="detail-row">
+                            <dt>Inquilino</dt>
+                            <dd>@Model.InquilinoNombre</dd>
+                        </div>
+
+                        <div class="detail-row">
+                            <dt>Fecha de inicio</dt>
+                            <dd>@Model.FechaInicio.ToString("dd/MM/yyyy")</dd>
+                        </div>
+
+                        <div class="detail-row">
+                            <dt>Fecha de fin</dt>
+                            <dd>@Model.FechaFin.ToString("dd/MM/yyyy")</dd>
+                        </div>
+
+                        <div class="detail-row">
+                            <dt>Monto por dia</dt>
+                            <dd class="text-success fw-semibold">$@Model.MontoPorDia.ToString("N2")</dd>
+                        </div>
+
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card form-card mt-4">
+                <div class="card-header">
+                    <i class="bi bi-calendar-x me-2"></i>Fecha de Terminacion
+                </div>
+                <div class="card-body">
+
+                    <form asp-action="Finalizar" asp-route-id="@Model.Id" method="post" @@submit.prevent="guardar">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="IdUsuarioTerminacion" />
+                        <input type="hidden" asp-for="MultaCalculada" :value="multa" />
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="form-group mb-0">
+                            <label asp-for="FechaTerminacion" class="form-label"></label>
+                            <input asp-for="FechaTerminacion" class="form-control" type="date"
+                                   v-model="fechaTerminacion" />
+                            <span class="text-danger small" v-if="errores.fechaTerminacion">{{ errores.fechaTerminacion
+                                }}</span>
+                            </div>
+
+                        </form>
+
                     </div>
-                    <div class="row mb-2">
-                        <div class="col-6">
-                            <i class="bi bi-calendar-check me-2 text-info"></i>Días transcurridos:
-                        </div>
-                        <div class="col-6 text-end"><strong>{{ diasTranscurridos }}</strong></div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-danger" :disabled="guardando" @@click="guardar">
+                        <i class="bi bi-flag me-1"></i>
+                        {{ guardando ? 'Finalizando...' : 'Finalizar Reserva' }}
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Cancelar
+                    </a>
+                </div>
+
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card form-card" v-if="fechaTerminacion">
+                    <div class="card-header">
+                        <i class="bi bi-calculator me-2"></i>Calculo de Multa
                     </div>
-                    <div class="row mb-2">
-                        <div class="col-6">
-                            <i class="bi bi-percent me-2 text-warning"></i>Porcentaje aplicado:
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-7 text-muted">Dias originales:</div>
+                            <div class="col-5 text-end fw-semibold">{{ diasOriginales }}</div>
                         </div>
-                        <div class="col-6 text-end"><strong>{{ porcentajeAplicado }}%</strong></div>
-                    </div>
-                    <hr />
-                    <div class="row">
-                        <div class="col-6">
-                            <strong><i class="bi bi-cash-coin me-2 text-danger"></i>Multa a pagar:</strong>
+                        <div class="row mb-3">
+                            <div class="col-7 text-muted">Dias transcurridos:</div>
+                            <div class="col-5 text-end fw-semibold">{{ diasTranscurridos }}</div>
                         </div>
-                        <div class="col-6 text-end">
-                            <strong class="text-danger fs-5">${{ formatearPrecio(multa) }}</strong>
+                        <div class="row mb-3">
+                            <div class="col-7 text-muted">Porcentaje aplicado:</div>
+                            <div class="col-5 text-end fw-semibold">{{ porcentajeAplicado }}%</div>
+                        </div>
+                        <hr />
+                        <div class="row">
+                            <div class="col-7 fw-semibold">Multa a pagar:</div>
+                            <div class="col-5 text-end">
+                                <span class="text-danger fw-bold fs-5">${{ formatearPrecio(multa) }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="form-group">
-                <button type="submit" class="btn btn-danger" :disabled="guardando">
-                    <i class="bi bi-check-circle me-1"></i>
-                    {{ guardando ? 'Finalizando...' : 'Finalizar Reserva' }}
-                </button>
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left me-1"></i>Cancelar
-                </a>
-            </div>
-        </form>
-    </div>
-</div>
+        </div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    </div>
+
+    @section Styles {
+        <style>
+            .page-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 12px;
+                margin-bottom: 24px;
+            }
+
+            .page-title {
+                font-size: 1.75rem;
+                font-weight: 700;
+                color: #212529;
+                margin: 0 0 4px 0;
+            }
+
+            .page-subtitle {
+                color: #868e96;
+                font-size: 0.9rem;
+                margin: 0;
+            }
+
+            .alert-soft {
+                display: flex;
+                align-items: flex-start;
+                gap: 14px;
+                padding: 16px 20px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+            }
+
+            .alert-soft-warning {
+                background-color: #fff5e1;
+                border: 1px solid #ffe4b3;
+                color: #664d03;
+            }
+
+            .alert-soft i {
+                font-size: 1.4rem;
+                flex-shrink: 0;
+                line-height: 1;
+            }
+
+            .alert-soft strong {
+                display: block;
+                font-size: 0.95rem;
+                margin-bottom: 2px;
+            }
+
+            .alert-soft p {
+                font-size: 0.85rem;
+                margin: 0;
+                opacity: 0.85;
+            }
+
+            .form-card {
+                background-color: #ffffff;
+                border: 1px solid #e9ecef;
+                border-radius: 12px;
+                overflow: hidden;
+            }
+
+            .form-card .card-header {
+                background-color: #f8f9fa;
+                border-bottom: 1px solid #e9ecef;
+                padding: 14px 20px;
+                font-weight: 600;
+                font-size: 0.9rem;
+                color: #495057;
+            }
+
+            .form-card .card-body {
+                padding: 20px 24px;
+            }
+
+            .form-label {
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: #495057;
+                margin-bottom: 6px;
+            }
+
+            .form-control {
+                border-radius: 8px;
+                border: 1px solid #dee2e6;
+                padding: 10px 14px;
+                font-size: 0.9rem;
+                transition: all 0.15s ease;
+            }
+
+            .form-control:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+            }
+
+            .detail-list {
+                margin: 0;
+            }
+
+            .detail-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+                padding: 12px 0;
+                border-bottom: 1px solid #f1f3f5;
+            }
+
+            .detail-row:last-child {
+                border-bottom: none;
+            }
+
+            .detail-row dt {
+                font-size: 0.85rem;
+                font-weight: 500;
+                color: #868e96;
+                margin: 0;
+                flex-shrink: 0;
+            }
+
+            .detail-row dd {
+                font-size: 0.9rem;
+                font-weight: 500;
+                color: #212529;
+                margin: 0;
+                text-align: right;
+                word-break: break-word;
+            }
+
+            .form-actions {
+                display: flex;
+                gap: 8px;
+                margin-top: 24px;
+                padding-top: 20px;
+                border-top: 1px solid #e9ecef;
+            }
+        </style>
     }
 
-    <script>
-        const { createApp } = Vue;
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
 
-        createApp({
-            data() {
-                return {
-                    fechaTerminacion: '@(Model?.FechaTerminacion.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))',
-                    fechaInicio: '@(Model?.FechaInicio.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))',
-                    fechaFin: '@(Model?.FechaFin.ToString("yyyy-MM-dd") ?? DateTime.Now.AddDays(7).ToString("yyyy-MM-dd"))',
-                    montoPorDia: @(Model?.MontoPorDia.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0"),
-                    errores: {},
-                    guardando: false
-                }
-            },
-            computed: {
-                diasOriginales() {
-                    if (!this.fechaInicio || !this.fechaFin) return 0;
-                    const inicio = new Date(this.fechaInicio);
-                    const fin = new Date(this.fechaFin);
-                    const diff = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24));
-                    return diff > 0 ? diff : 0;
-                },
-                diasTranscurridos() {
-                    if (!this.fechaInicio || !this.fechaTerminacion) return 0;
-                    const inicio = new Date(this.fechaInicio);
-                    const terminacion = new Date(this.fechaTerminacion);
-                    const diff = Math.ceil((terminacion - inicio) / (1000 * 60 * 60 * 24));
-                    return diff > 0 ? diff : 0;
-                },
-                porcentajeAplicado() {
-                    if (this.diasOriginales === 0) return 0;
-                    return this.diasTranscurridos < this.diasOriginales / 2 ? 50 : 25;
-                },
-                multa() {
-                    if (this.diasOriginales === 0) return 0;
-                    return this.montoPorDia * this.diasOriginales * (this.porcentajeAplicado / 100);
-                }
-            },
-            methods: {
-                formatearPrecio(valor) {
-                    return new Intl.NumberFormat('es-AR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }).format(valor || 0);
-                },
-                validar() {
-                    this.errores = {};
-                    if (!this.fechaTerminacion) {
-                        this.errores.fechaTerminacion = "La fecha de terminación es obligatoria.";
-                    }
-                    const hoy = new Date();
-                    hoy.setHours(0, 0, 0, 0);
-                    const terminacion = new Date(this.fechaTerminacion);
-                    if (terminacion > hoy) {
-                        this.errores.fechaTerminacion = "La fecha de terminación no puede ser en el futuro.";
-                    }
-                    if (terminacion < new Date(this.fechaInicio)) {
-                        this.errores.fechaTerminacion = "La fecha de terminación no puede ser anterior a la fecha de inicio.";
-                    }
-                    return Object.keys(this.errores).length === 0;
-                },
-                async guardar() {
-                    if (!this.validar()) return;
-                    this.guardando = true;
-                    try {
-                        const form = document.querySelector('form');
-                        const formData = new FormData(form);
-                        formData.set('FechaTerminacion', this.fechaTerminacion);
-                        formData.set('MultaCalculada', this.multa);
+        <script>
+            const { createApp } = Vue;
 
-                        const response = await fetch(form.action, {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        if (response.redirected) {
-                            window.location.href = response.url;
-                        } else {
-                            const html = await response.text();
-                            document.open();
-                            document.write(html);
-                            document.close();
+            createApp({
+                data() {
+                    return {
+                        fechaTerminacion: '@(Model?.FechaTerminacion.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))',
+                        fechaInicio: '@(Model?.FechaInicio.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))',
+                        fechaFin: '@(Model?.FechaFin.ToString("yyyy-MM-dd") ?? DateTime.Now.AddDays(7).ToString("yyyy-MM-dd"))',
+                        montoPorDia: @(Model?.MontoPorDia.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0"),
+                        errores: {},
+                        guardando: false
+                    }
+                },
+                computed: {
+                    diasOriginales() {
+                        if (!this.fechaInicio || !this.fechaFin) return 0;
+                        const inicio = new Date(this.fechaInicio);
+                        const fin = new Date(this.fechaFin);
+                        const diff = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24));
+                        return diff > 0 ? diff : 0;
+                    },
+                    diasTranscurridos() {
+                        if (!this.fechaInicio || !this.fechaTerminacion) return 0;
+                        const inicio = new Date(this.fechaInicio);
+                        const terminacion = new Date(this.fechaTerminacion);
+                        const diff = Math.ceil((terminacion - inicio) / (1000 * 60 * 60 * 24));
+                        return diff > 0 ? diff : 0;
+                    },
+                    porcentajeAplicado() {
+                        if (this.diasOriginales === 0) return 0;
+                        return this.diasTranscurridos < this.diasOriginales / 2 ? 50 : 25;
+                    },
+                    multa() {
+                        if (this.diasOriginales === 0) return 0;
+                        return this.montoPorDia * this.diasOriginales * (this.porcentajeAplicado / 100);
+                    }
+                },
+                methods: {
+                    formatearPrecio(valor) {
+                        return new Intl.NumberFormat('es-AR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }).format(valor || 0);
+                    },
+                    validar() {
+                        this.errores = {};
+                        if (!this.fechaTerminacion) {
+                            this.errores.fechaTerminacion = "La fecha de terminacion es obligatoria.";
                         }
-                    } catch (error) {
-                        alert('Error de conexión: ' + error.message);
-                    } finally {
-                        this.guardando = false;
+                        const hoy = new Date();
+                        hoy.setHours(0, 0, 0, 0);
+                        const terminacion = new Date(this.fechaTerminacion);
+                        if (terminacion > hoy) {
+                            this.errores.fechaTerminacion = "La fecha de terminacion no puede ser en el futuro.";
+                        }
+                        if (terminacion < new Date(this.fechaInicio)) {
+                            this.errores.fechaTerminacion = "La fecha de terminacion no puede ser anterior a la fecha de inicio.";
+                        }
+                        return Object.keys(this.errores).length === 0;
+                    },
+                    async guardar() {
+                        if (!this.validar()) return;
+                        this.guardando = true;
+                        try {
+                            const form = document.querySelector('form');
+                            const formData = new FormData(form);
+                            formData.set('FechaTerminacion', this.fechaTerminacion);
+                            formData.set('MultaCalculada', this.multa);
+
+                            const response = await fetch(form.action, {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            if (response.redirected) {
+                                window.location.href = response.url;
+                            } else {
+                                const html = await response.text();
+                                document.documentElement.innerHTML = html;
+                            }
+                        } catch (error) {
+                            alert('Error de conexion: ' + error.message);
+                        } finally {
+                            this.guardando = false;
+                        }
                     }
                 }
-            }
-        }).mount('#app-finalizar');
-    </script>
-}
+            }).mount('#app-finalizar');
+        </script>
+    }

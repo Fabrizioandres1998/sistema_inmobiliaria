@@ -4,324 +4,460 @@
     ViewData["Title"] = "Crear Reserva";
 }
 
-<h1>Crear Reserva</h1>
+<div id="app-reserva">
 
-<hr />
-<div class="row" id="app-reserva">
-    <div class="col-md-8">
-        <form asp-action="Create" method="post" @@submit.prevent="guardar">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <!-- Inmueble -->
-            <div class="form-group mb-3 position-relative">
-                <label class="control-label">Inmueble</label>
-                <input type="text" class="form-control" placeholder="Buscar por dirección..." v-model="busquedaInmueble"
-                @@focus="mostrarSugerencias = true" @@blur="cerrarSugerencias" autocomplete="off" />
-                <input type="hidden" name="IdInmueble" :value="reserva.idInmueble" />
-
-                <ul class="list-group position-absolute w-100 shadow"
-                    style="z-index: 1000; max-height: 300px; overflow-y: auto;"
-                    v-if="mostrarSugerencias && inmueblesFiltrados.length > 0">
-                    <li class="list-group-item list-group-item-action" v-for="inm in inmueblesFiltrados" :key="inm.id"
-                        @@mousedown.prevent="seleccionarInmueble(inm)" style="cursor: pointer;">
-                        <div class="d-flex justify-content-between">
-                            <span>{{ inm.direccion }}</span>
-                            <span class="text-muted">${{ formatearPrecio(inm.precio) }}/día</span>
-                        </div>
-                    </li>
-                </ul>
-
-                <div class="text-muted mt-1"
-                     v-if="mostrarSugerencias && busquedaInmueble && inmueblesFiltrados.length === 0">
-                    No se encontraron inmuebles con esa dirección.
-                </div>
-
-                <div class="mt-2" v-if="inmuebleSeleccionado">
-                    <span class="badge bg-success">
-                        Seleccionado: {{ inmuebleSeleccionado.direccion }}
-                    </span>
-                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" @@click="limpiarInmueble">
-                        Quitar
-                    </button>
-                </div>
-
-                <span class="text-danger" v-if="errores.idInmueble">{{ errores.idInmueble }}</span>
-            </div>
-
-            <!-- Inquilino -->
-            <div class="form-group mb-3 position-relative">
-                <label class="control-label">Inquilino</label>
-                <input type="text" class="form-control" placeholder="Buscar por nombre o DNI..."
-                       v-model="busquedaInquilino" @@focus="mostrarSugerenciasInquilino = true"
-                @@blur="cerrarSugerenciasInquilino" autocomplete="off" />
-                <input type="hidden" name="IdInquilino" :value="reserva.idInquilino" />
-
-                <ul class="list-group position-absolute w-100 shadow"
-                    style="z-index: 1000; max-height: 300px; overflow-y: auto;"
-                    v-if="mostrarSugerenciasInquilino && inquilinosFiltrados.length > 0">
-                    <li class="list-group-item list-group-item-action" v-for="inq in inquilinosFiltrados" :key="inq.id"
-                        @@mousedown.prevent="seleccionarInquilino(inq)" style="cursor: pointer;">
-                        <div class="d-flex justify-content-between">
-                            <span>{{ inq.nombreCompleto }}</span>
-                            <span class="text-muted">DNI: {{ inq.dni }}</span>
-                        </div>
-                    </li>
-                </ul>
-
-                <div class="text-muted mt-1"
-                     v-if="mostrarSugerenciasInquilino && busquedaInquilino && inquilinosFiltrados.length === 0">
-                    No se encontraron inquilinos con ese criterio.
-                </div>
-
-                <div class="mt-2" v-if="inquilinoSeleccionado">
-                    <span class="badge bg-success">
-                        Seleccionado: {{ inquilinoSeleccionado.nombreCompleto }}
-                    </span>
-                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" @@click="limpiarInquilino">
-                        Quitar
-                    </button>
-                </div>
-
-                <span class="text-danger" v-if="errores.idInquilino">{{ errores.idInquilino }}</span>
-            </div>
-
-            <!-- Fechas -->
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <label asp-for="FechaInicio" class="control-label"></label>
-                        <input asp-for="FechaInicio" class="form-control" type="date" v-model="reserva.fechaInicio" />
-                        <span class="text-danger" v-if="errores.fechaInicio">{{ errores.fechaInicio }}</span>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <label asp-for="FechaFin" class="control-label"></label>
-                        <input asp-for="FechaFin" class="form-control" type="date" v-model="reserva.fechaFin" />
-                        <span class="text-danger" v-if="errores.fechaFin">{{ errores.fechaFin }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Monto por día -->
-            <div class="form-group mb-3">
-                <label asp-for="MontoPorDia" class="control-label">Precio por Día</label>
-                <input asp-for="MontoPorDia" class="form-control" :value="reserva.montoPorDia" readonly />
-            </div>
-
-            <!-- Resumen -->
-            <div class="card mb-3" v-if="reserva.idInmueble && reserva.montoPorDia > 0 && dias > 0">
-                <div class="card-header bg-light">
-                    <strong><i class="bi bi-clipboard-check me-2"></i>Resumen de la Reserva</strong>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-2">
-                        <div class="col-6">
-                            <i class="bi bi-calendar-event me-2 text-primary"></i>Días totales:
-                        </div>
-                        <div class="col-6 text-end"><strong>{{ dias }}</strong></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-6">
-                            <i class="bi bi-currency-dollar me-2 text-success"></i>Precio por día:
-                        </div>
-                        <div class="col-6 text-end"><strong>${{ formatearPrecio(reserva.montoPorDia) }}</strong></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-6">
-                            <i class="bi bi-cash me-2 text-success"></i>Subtotal:
-                        </div>
-                        <div class="col-6 text-end"><strong>${{ formatearPrecio(subtotal) }}</strong></div>
-                    </div>
-                    <div class="row mb-2" v-if="porcentajeReserva > 0">
-                        <div class="col-6">
-                            <i class="bi bi-percent me-2 text-warning"></i>Seña ({{ porcentajeReserva }}%):
-                        </div>
-                        <div class="col-6 text-end"><strong>${{ formatearPrecio(sena) }}</strong></div>
-                    </div>
-                    <hr />
-                    <div class="row">
-                        <div class="col-6">
-                            <strong><i class="bi bi-credit-card me-2 text-success"></i>Total a pagar:</strong>
-                        </div>
-                        <div class="col-6 text-end">
-                            <strong class="text-success">${{ formatearPrecio(total) }}</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary" :disabled="guardando">
-                    {{ guardando ? 'Creando...' : 'Crear Reserva' }}
-                </button>
-                <a asp-action="Index" class="btn btn-secondary">Volver</a>
-            </div>
-        </form>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Crear Reserva</h1>
+            <p class="page-subtitle">Registra una nueva reserva en el sistema</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
     </div>
-</div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <form asp-action="Create" method="post" @@submit.prevent="guardar">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-    <script>
-        const { createApp } = Vue;
+        <div class="row g-4">
+            <div class="col-lg-8">
 
-        createApp({
-            data() {
-                return {
-                    // Inmuebles
-                    inmuebles: @Html.Raw(ViewBag.InmueblesJson ?? "[]"),
-                    busquedaInmueble: '',
-                    mostrarSugerencias: false,
-                    inmuebleSeleccionado: null,
+                <div class="card form-card">
+                    <div class="card-header">
+                        <i class="bi bi-house me-2"></i>Inmueble e Inquilino
+                    </div>
+                    <div class="card-body">
 
-                    // Inquilinos
-                    inquilinos: @Html.Raw(ViewBag.InquilinosJson ?? "[]"),
-                    busquedaInquilino: '',
-                    mostrarSugerenciasInquilino: false,
-                    inquilinoSeleccionado: null,
+                        <div class="form-group mb-3 position-relative">
+                            <label class="form-label">Inmueble</label>
+                            <input type="text" class="form-control" placeholder="Buscar por direccion..."
+                                   v-model="busquedaInmueble" @@focus="mostrarSugerencias = true"
+                            @@blur="cerrarSugerencias" autocomplete="off" />
+                            <input type="hidden" name="IdInmueble" :value="reserva.idInmueble" />
 
-                    // Reserva
-                    reserva: {
-                        idInmueble: 0,
-                        idInquilino: @(Model?.IdInquilino ?? 0),
-                        fechaInicio: '@(Model?.FechaInicio.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))',
-                        fechaFin: '@(Model?.FechaFin.ToString("yyyy-MM-dd") ?? DateTime.Now.AddDays(7).ToString("yyyy-MM-dd"))',
-                        montoPorDia: 0
-                    },
-                    porcentajeReserva: 0,
-                    errores: {},
-                    guardando: false
-                }
-            },
-            computed: {
-                inmueblesFiltrados() {
-                    if (!this.busquedaInmueble) return this.inmuebles.slice(0, 30);
-                    const term = this.busquedaInmueble.toLowerCase().trim();
-                    return this.inmuebles
-                        .filter(i => i.direccion.toLowerCase().includes(term))
-                        .slice(0, 30);
-                },
-                inquilinosFiltrados() {
-                    if (!this.busquedaInquilino) return this.inquilinos.slice(0, 30);
-                    const term = this.busquedaInquilino.toLowerCase().trim();
-                    return this.inquilinos
-                        .filter(i =>
-                            i.nombreCompleto.toLowerCase().includes(term) ||
-                            (i.dni && i.dni.includes(term))
-                        )
-                        .slice(0, 30);
-                },
-                dias() {
-                    if (!this.reserva.fechaInicio || !this.reserva.fechaFin) return 0;
-                    const inicio = new Date(this.reserva.fechaInicio);
-                    const fin = new Date(this.reserva.fechaFin);
-                    const diff = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24));
-                    return diff > 0 ? diff : 0;
-                },
-                subtotal() {
-                    return this.dias * this.reserva.montoPorDia;
-                },
-                sena() {
-                    return this.subtotal * (this.porcentajeReserva / 100);
-                },
-                total() {
-                    return this.sena > 0 ? this.sena : this.subtotal;
-                }
-            },
-            methods: {
-                formatearPrecio(valor) {
-                    return new Intl.NumberFormat('es-AR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }).format(valor || 0);
-                },
-                seleccionarInmueble(inm) {
-                    this.inmuebleSeleccionado = inm;
-                    this.reserva.idInmueble = inm.id;
-                    this.reserva.montoPorDia = inm.precio;
-                    this.porcentajeReserva = inm.porcentaje || 0;
-                    this.busquedaInmueble = inm.direccion;
-                    this.mostrarSugerencias = false;
-                },
-                limpiarInmueble() {
-                    this.inmuebleSeleccionado = null;
-                    this.reserva.idInmueble = 0;
-                    this.reserva.montoPorDia = 0;
-                    this.porcentajeReserva = 0;
-                    this.busquedaInmueble = '';
-                },
-                cerrarSugerencias() {
-                    setTimeout(() => { this.mostrarSugerencias = false; }, 150);
-                },
-                seleccionarInquilino(inq) {
-                    this.inquilinoSeleccionado = inq;
-                    this.reserva.idInquilino = inq.id;
-                    this.busquedaInquilino = inq.nombreCompleto;
-                    this.mostrarSugerenciasInquilino = false;
-                },
-                limpiarInquilino() {
-                    this.inquilinoSeleccionado = null;
-                    this.reserva.idInquilino = 0;
-                    this.busquedaInquilino = '';
-                },
-                cerrarSugerenciasInquilino() {
-                    setTimeout(() => { this.mostrarSugerenciasInquilino = false; }, 150);
-                },
-                validar() {
-                    this.errores = {};
-                    if (!this.reserva.idInmueble) {
-                        this.errores.idInmueble = "Debe seleccionar un inmueble.";
+                            <ul class="list-group position-absolute w-100 shadow suggestion-list"
+                                v-if="mostrarSugerencias && inmueblesFiltrados.length > 0">
+                                <li class="list-group-item list-group-item-action" v-for="inm in inmueblesFiltrados"
+                                    :key="inm.id" @@mousedown.prevent="seleccionarInmueble(inm)">
+                                    <div class="d-flex justify-content-between">
+                                        <span>{{ inm.direccion }}</span>
+                                        <span class="text-muted">${{ formatearPrecio(inm.precio) }}/dia</span>
+                                    </div>
+                                </li>
+                            </ul>
+
+                            <div class="text-muted small mt-1"
+                                 v-if="mostrarSugerencias && busquedaInmueble && inmueblesFiltrados.length === 0">
+                                No se encontraron inmuebles con esa direccion.
+                            </div>
+
+                            <div class="mt-2" v-if="inmuebleSeleccionado">
+                                <span class="badge-soft badge-soft-success">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    {{ inmuebleSeleccionado.direccion }}
+                                </span>
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-2"
+                                    @@click="limpiarInmueble">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </div>
+
+                            <span class="text-danger small d-block" v-if="errores.idInmueble">{{ errores.idInmueble
+                                }}</span>
+                            </div>
+
+                            <div class="form-group mb-0 position-relative">
+                                <label class="form-label">Inquilino</label>
+                                <input type="text" class="form-control" placeholder="Buscar por nombre o DNI..."
+                                       v-model="busquedaInquilino" @@focus="mostrarSugerenciasInquilino = true"
+                                @@blur="cerrarSugerenciasInquilino" autocomplete="off" />
+                                <input type="hidden" name="IdInquilino" :value="reserva.idInquilino" />
+
+                                <ul class="list-group position-absolute w-100 shadow suggestion-list"
+                                    v-if="mostrarSugerenciasInquilino && inquilinosFiltrados.length > 0">
+                                    <li class="list-group-item list-group-item-action" v-for="inq in inquilinosFiltrados"
+                                        :key="inq.id" @@mousedown.prevent="seleccionarInquilino(inq)">
+                                        <div class="d-flex justify-content-between">
+                                            <span>{{ inq.nombreCompleto }}</span>
+                                            <span class="text-muted">DNI: {{ inq.dni }}</span>
+                                        </div>
+                                    </li>
+                                </ul>
+
+                                <div class="text-muted small mt-1"
+                                     v-if="mostrarSugerenciasInquilino && busquedaInquilino && inquilinosFiltrados.length === 0">
+                                    No se encontraron inquilinos con ese criterio.
+                                </div>
+
+                                <div class="mt-2" v-if="inquilinoSeleccionado">
+                                    <span class="badge-soft badge-soft-success">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        {{ inquilinoSeleccionado.nombreCompleto }}
+                                    </span>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2"
+                                        @@click="limpiarInquilino">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </div>
+
+                                <span class="text-danger small d-block" v-if="errores.idInquilino">{{ errores.idInquilino
+                                    }}</span>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="card form-card mt-4">
+                            <div class="card-header">
+                                <i class="bi bi-calendar-range me-2"></i>Fechas
+                            </div>
+                            <div class="card-body">
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label asp-for="FechaInicio" class="form-label"></label>
+                                            <input asp-for="FechaInicio" class="form-control" type="date"
+                                                   v-model="reserva.fechaInicio" />
+                                            <span class="text-danger small" v-if="errores.fechaInicio">{{ errores.fechaInicio
+                                                }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label asp-for="FechaFin" class="form-label"></label>
+                                                <input asp-for="FechaFin" class="form-control" type="date"
+                                                       v-model="reserva.fechaFin" />
+                                                <span class="text-danger small" v-if="errores.fechaFin">{{ errores.fechaFin
+                                                    }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group mb-0">
+                                            <label asp-for="MontoPorDia" class="form-label">Precio por Dia</label>
+                                            <input asp-for="MontoPorDia" class="form-control" :value="reserva.montoPorDia" readonly />
+                                            <small class="text-muted d-block mt-1">El precio se carga automaticamente al seleccionar el
+                                                inmueble.</small>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="col-lg-4">
+                                    <div class="card form-card" v-if="reserva.idInmueble && reserva.montoPorDia > 0 && dias > 0">
+                                        <div class="card-header">
+                                            <i class="bi bi-clipboard-check me-2"></i>Resumen
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row mb-3">
+                                                <div class="col-6 text-muted">Dias totales:</div>
+                                                <div class="col-6 text-end fw-semibold">{{ dias }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-6 text-muted">Precio por dia:</div>
+                                                <div class="col-6 text-end fw-semibold">${{ formatearPrecio(reserva.montoPorDia) }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-6 text-muted">Subtotal:</div>
+                                                <div class="col-6 text-end fw-semibold">${{ formatearPrecio(subtotal) }}</div>
+                                            </div>
+                                            <div class="row mb-3" v-if="porcentajeReserva > 0">
+                                                <div class="col-6 text-muted">Sena ({{ porcentajeReserva }}%):</div>
+                                                <div class="col-6 text-end fw-semibold">${{ formatearPrecio(sena) }}</div>
+                                            </div>
+                                            <hr />
+                                            <div class="row">
+                                                <div class="col-6 fw-semibold">Total a pagar:</div>
+                                                <div class="col-6 text-end">
+                                                    <span class="text-success fw-bold fs-5">${{ formatearPrecio(total) }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary" :disabled="guardando">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    {{ guardando ? 'Creando...' : 'Crear Reserva' }}
+                                </button>
+                                <a asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle me-1"></i>Cancelar
+                                </a>
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                    @section Styles {
+                        <style>
+                            .page-header {
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                flex-wrap: wrap;
+                                gap: 12px;
+                                margin-bottom: 24px;
+                            }
+
+                            .page-title {
+                                font-size: 1.75rem;
+                                font-weight: 700;
+                                color: #212529;
+                                margin: 0 0 4px 0;
+                            }
+
+                            .page-subtitle {
+                                color: #868e96;
+                                font-size: 0.9rem;
+                                margin: 0;
+                            }
+
+                            .form-card {
+                                background-color: #ffffff;
+                                border: 1px solid #e9ecef;
+                                border-radius: 12px;
+                                overflow: hidden;
+                            }
+
+                            .form-card .card-header {
+                                background-color: #f8f9fa;
+                                border-bottom: 1px solid #e9ecef;
+                                padding: 14px 20px;
+                                font-weight: 600;
+                                font-size: 0.9rem;
+                                color: #495057;
+                            }
+
+                            .form-card .card-body {
+                                padding: 20px 24px;
+                            }
+
+                            .form-label {
+                                font-size: 0.85rem;
+                                font-weight: 600;
+                                color: #495057;
+                                margin-bottom: 6px;
+                            }
+
+                            .form-control {
+                                border-radius: 8px;
+                                border: 1px solid #dee2e6;
+                                padding: 10px 14px;
+                                font-size: 0.9rem;
+                                transition: all 0.15s ease;
+                            }
+
+                            .form-control:focus {
+                                border-color: #0d6efd;
+                                box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+                            }
+
+                            .suggestion-list {
+                                max-height: 300px;
+                                overflow-y: auto;
+                                z-index: 1000;
+                                border-radius: 8px;
+                                margin-top: 4px;
+                            }
+
+                            .suggestion-list .list-group-item {
+                                border: none;
+                                border-bottom: 1px solid #f1f3f5;
+                                padding: 10px 14px;
+                                cursor: pointer;
+                                font-size: 0.88rem;
+                            }
+
+                            .suggestion-list .list-group-item:hover {
+                                background-color: #f8f9fa;
+                            }
+
+                            .badge-soft {
+                                display: inline-flex;
+                                align-items: center;
+                                padding: 5px 12px;
+                                border-radius: 20px;
+                                font-size: 0.78rem;
+                                font-weight: 600;
+                            }
+
+                            .badge-soft-success {
+                                background-color: #e6f7ed;
+                                color: #198754;
+                            }
+
+                            .form-actions {
+                                display: flex;
+                                gap: 8px;
+                                margin-top: 24px;
+                                padding-top: 20px;
+                                border-top: 1px solid #e9ecef;
+                            }
+                        </style>
                     }
-                    if (!this.reserva.idInquilino) {
-                        this.errores.idInquilino = "Debe seleccionar un inquilino.";
-                    }
-                    if (!this.reserva.fechaInicio) {
-                        this.errores.fechaInicio = "La fecha de inicio es obligatoria.";
-                    }
-                    if (!this.reserva.fechaFin) {
-                        this.errores.fechaFin = "La fecha de fin es obligatoria.";
-                    }
-                    if (this.dias <= 0) {
-                        this.errores.fechaFin = "La fecha de fin debe ser posterior a la de inicio.";
-                    }
-                    return Object.keys(this.errores).length === 0;
-                },
-                async guardar() {
-                    if (!this.validar()) return;
-                    this.guardando = true;
-                    try {
-                        const form = document.querySelector('form');
-                        const formData = new FormData(form);
-                        formData.set('IdInmueble', this.reserva.idInmueble);
-                        formData.set('IdInquilino', this.reserva.idInquilino);
-                        formData.set('FechaInicio', this.reserva.fechaInicio);
-                        formData.set('FechaFin', this.reserva.fechaFin);
-                        formData.set('MontoPorDia', this.reserva.montoPorDia);
 
-                        const response = await fetch(form.action, {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        if (response.redirected) {
-                            window.location.href = response.url;
-                        } else {
-                            const html = await response.text();
-                            document.open();
-                            document.write(html);
-                            document.close();
+                    @section Scripts {
+                        @{
+                            await Html.RenderPartialAsync("_ValidationScriptsPartial");
                         }
-                    } catch (error) {
-                        alert('Error de conexión: ' + error.message);
-                    } finally {
-                        this.guardando = false;
+
+                        <script>
+                            const { createApp } = Vue;
+
+                            createApp({
+                                data() {
+                                    return {
+                                        inmuebles: @Html.Raw(ViewBag.InmueblesJson ?? "[]"),
+                                        busquedaInmueble: '',
+                                        mostrarSugerencias: false,
+                                        inmuebleSeleccionado: null,
+
+                                        inquilinos: @Html.Raw(ViewBag.InquilinosJson ?? "[]"),
+                                        busquedaInquilino: '',
+                                        mostrarSugerenciasInquilino: false,
+                                        inquilinoSeleccionado: null,
+
+                                        reserva: {
+                                            idInmueble: 0,
+                                            idInquilino: @(Model?.IdInquilino ?? 0),
+                                            fechaInicio: '@(Model?.FechaInicio.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))',
+                                            fechaFin: '@(Model?.FechaFin.ToString("yyyy-MM-dd") ?? DateTime.Now.AddDays(7).ToString("yyyy-MM-dd"))',
+                                            montoPorDia: 0
+                                        },
+                                        porcentajeReserva: 0,
+                                        errores: {},
+                                        guardando: false
+                                    }
+                                },
+                                computed: {
+                                    inmueblesFiltrados() {
+                                        if (!this.busquedaInmueble) return this.inmuebles.slice(0, 30);
+                                        const term = this.busquedaInmueble.toLowerCase().trim();
+                                        return this.inmuebles
+                                            .filter(i => i.direccion.toLowerCase().includes(term))
+                                            .slice(0, 30);
+                                    },
+                                    inquilinosFiltrados() {
+                                        if (!this.busquedaInquilino) return this.inquilinos.slice(0, 30);
+                                        const term = this.busquedaInquilino.toLowerCase().trim();
+                                        return this.inquilinos
+                                            .filter(i =>
+                                                i.nombreCompleto.toLowerCase().includes(term) ||
+                                                (i.dni && i.dni.includes(term))
+                                            )
+                                            .slice(0, 30);
+                                    },
+                                    dias() {
+                                        if (!this.reserva.fechaInicio || !this.reserva.fechaFin) return 0;
+                                        const inicio = new Date(this.reserva.fechaInicio);
+                                        const fin = new Date(this.reserva.fechaFin);
+                                        const diff = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24));
+                                        return diff > 0 ? diff : 0;
+                                    },
+                                    subtotal() {
+                                        return this.dias * this.reserva.montoPorDia;
+                                    },
+                                    sena() {
+                                        return this.subtotal * (this.porcentajeReserva / 100);
+                                    },
+                                    total() {
+                                        return this.sena > 0 ? this.sena : this.subtotal;
+                                    }
+                                },
+                                methods: {
+                                    formatearPrecio(valor) {
+                                        return new Intl.NumberFormat('es-AR', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }).format(valor || 0);
+                                    },
+                                    seleccionarInmueble(inm) {
+                                        this.inmuebleSeleccionado = inm;
+                                        this.reserva.idInmueble = inm.id;
+                                        this.reserva.montoPorDia = inm.precio;
+                                        this.porcentajeReserva = inm.porcentaje || 0;
+                                        this.busquedaInmueble = inm.direccion;
+                                        this.mostrarSugerencias = false;
+                                    },
+                                    limpiarInmueble() {
+                                        this.inmuebleSeleccionado = null;
+                                        this.reserva.idInmueble = 0;
+                                        this.reserva.montoPorDia = 0;
+                                        this.porcentajeReserva = 0;
+                                        this.busquedaInmueble = '';
+                                    },
+                                    cerrarSugerencias() {
+                                        setTimeout(() => { this.mostrarSugerencias = false; }, 150);
+                                    },
+                                    seleccionarInquilino(inq) {
+                                        this.inquilinoSeleccionado = inq;
+                                        this.reserva.idInquilino = inq.id;
+                                        this.busquedaInquilino = inq.nombreCompleto;
+                                        this.mostrarSugerenciasInquilino = false;
+                                    },
+                                    limpiarInquilino() {
+                                        this.inquilinoSeleccionado = null;
+                                        this.reserva.idInquilino = 0;
+                                        this.busquedaInquilino = '';
+                                    },
+                                    cerrarSugerenciasInquilino() {
+                                        setTimeout(() => { this.mostrarSugerenciasInquilino = false; }, 150);
+                                    },
+                                    validar() {
+                                        this.errores = {};
+                                        if (!this.reserva.idInmueble) {
+                                            this.errores.idInmueble = "Debe seleccionar un inmueble.";
+                                        }
+                                        if (!this.reserva.idInquilino) {
+                                            this.errores.idInquilino = "Debe seleccionar un inquilino.";
+                                        }
+                                        if (!this.reserva.fechaInicio) {
+                                            this.errores.fechaInicio = "La fecha de inicio es obligatoria.";
+                                        }
+                                        if (!this.reserva.fechaFin) {
+                                            this.errores.fechaFin = "La fecha de fin es obligatoria.";
+                                        }
+                                        if (this.dias <= 0) {
+                                            this.errores.fechaFin = "La fecha de fin debe ser posterior a la de inicio.";
+                                        }
+                                        return Object.keys(this.errores).length === 0;
+                                    },
+                                    async guardar() {
+                                        if (!this.validar()) return;
+                                        this.guardando = true;
+                                        try {
+                                            const form = document.querySelector('form');
+                                            const formData = new FormData(form);
+                                            formData.set('IdInmueble', this.reserva.idInmueble);
+                                            formData.set('IdInquilino', this.reserva.idInquilino);
+                                            formData.set('FechaInicio', this.reserva.fechaInicio);
+                                            formData.set('FechaFin', this.reserva.fechaFin);
+                                            formData.set('MontoPorDia', this.reserva.montoPorDia);
+
+                                            const response = await fetch(form.action, {
+                                                method: 'POST',
+                                                body: formData
+                                            });
+
+                                            if (response.redirected) {
+                                                window.location.href = response.url;
+                                            } else {
+                                                const html = await response.text();
+                                                document.documentElement.innerHTML = html;
+                                            }
+                                        } catch (error) {
+                                            alert('Error de conexion: ' + error.message);
+                                        } finally {
+                                            this.guardando = false;
+                                        }
+                                    }
+                                }
+                            }).mount('#app-reserva');
+                        </script>
                     }
-                }
-            }
-        }).mount('#app-reserva');
-    </script>
-}

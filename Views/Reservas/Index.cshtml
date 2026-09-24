@@ -15,109 +15,137 @@
     </div>
 }
 
-<h1>Reservas</h1>
-
-<p>
-    <a asp-action="Create" class="btn btn-primary">Crear Nueva Reserva</a>
-
-    @if (soloVigentes)
-    {
-        <a asp-action="Index" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-soloVigentes="false"
-           class="btn btn-secondary">
-            Ver Todas
-        </a>
-    }
-    else
-    {
-        <a asp-action="Index" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-soloVigentes="true"
-           class="btn btn-success">
-            Ver Vigentes
-        </a>
-    }
-</p>
-
-<form asp-action="Index" method="get" class="mb-3">
-    <div class="input-group">
-        <input type="text" name="searchTerm" class="form-control" placeholder="Buscar..." value="@ViewBag.SearchTerm" />
-        <input type="hidden" name="soloVigentes" value="@soloVigentes.ToString().ToLower()" />
-        <button type="submit" class="btn btn-outline-secondary">Buscar</button>
-        @if (!string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string))
-        {
-            <a asp-action="Index" asp-route-soloVigentes="@soloVigentes" class="btn btn-outline-danger">Limpiar</a>
-        }
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Reservas</h1>
+        <p class="page-subtitle">Gestion de reservas registradas</p>
     </div>
-</form>
-
-<div class="table-responsive">
-    <table class="table table-striped align-middle">
-        <thead>
-            <tr>
-                <th class="text-nowrap">ID</th>
-                <th class="text-nowrap">Inmueble</th>
-                <th class="text-nowrap">Inquilino</th>
-                <th class="text-nowrap">Fecha Inicio</th>
-                <th class="text-nowrap">Fecha Fin</th>
-                <th class="text-nowrap">Monto/Día</th>
-                <th class="text-nowrap">Monto total</th>
-                <th class="text-nowrap">Estado</th>
-                <th class="text-nowrap">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>@item.Id</td>
-                    <td>@item.Inmueble?.Direccion</td>
-                    <td>@item.Inquilino?.NombreCompleto</td>
-                    <td>@item.FechaInicio.ToShortDateString()</td>
-                    <td>@item.FechaFin.ToShortDateString()</td>
-                    <td>@item.MontoPorDia.ToString("N2")</td>
-                    <td>@item.MontoTotal.ToString("N2")</td>
-                    <td>
-                        @if (item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
-                        {
-                            <span class="badge bg-success">Activa</span>
-                        }
-                        else if (item.Estado.Equals("Finalizada", StringComparison.OrdinalIgnoreCase))
-                        {
-                            <span class="badge bg-secondary">Finalizada</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-danger">Cancelada</span>
-                        }
-                    </td>
-                    <td class="text-nowrap">
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Ver detalles">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                        @if (item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
-                        {
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Editar">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a asp-action="Finalizar" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Finalizar">
-                                <i class="bi bi-flag"></i>
-                            </a>
-                            <a asp-action="Renovar" asp-route-id="@item.Id" class="btn btn-sm btn-success" title="Renovar">
-                                <i class="bi bi-arrow-clockwise"></i>
-                            </a>
-                        }
-                        @if (User.IsInRole("Administrador"))
-                        {
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Eliminar">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="page-actions">
+        @if (soloVigentes)
+        {
+            <a asp-action="Index" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-soloVigentes="false"
+               class="btn btn-outline-secondary">
+                <i class="bi bi-list"></i> Ver Todas
+            </a>
+        }
+        else
+        {
+            <a asp-action="Index" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-soloVigentes="true"
+               class="btn btn-outline-success">
+                <i class="bi bi-check-circle"></i> Ver Vigentes
+            </a>
+        }
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Crear Nueva Reserva
+        </a>
+    </div>
 </div>
 
-<div class="d-flex justify-content-center">
+<div class="card filter-card">
+    <div class="card-body">
+        <form asp-action="Index" method="get">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" name="searchTerm" class="form-control border-start-0"
+                       placeholder="Buscar por inmueble, inquilino o estado..." value="@ViewBag.SearchTerm" />
+                <input type="hidden" name="soloVigentes" value="@soloVigentes.ToString().ToLower()" />
+                <button type="submit" class="btn btn-outline-secondary">Buscar</button>
+                @if (!string.IsNullOrWhiteSpace(ViewBag.SearchTerm as string))
+                {
+                    <a asp-action="Index" asp-route-soloVigentes="@soloVigentes" class="btn btn-outline-danger">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card table-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="text-nowrap">ID</th>
+                    <th class="text-nowrap">Inmueble</th>
+                    <th class="text-nowrap">Inquilino</th>
+                    <th class="text-nowrap">Fecha Inicio</th>
+                    <th class="text-nowrap">Fecha Fin</th>
+                    <th class="text-nowrap">Monto/Dia</th>
+                    <th class="text-nowrap">Monto Total</th>
+                    <th class="text-nowrap">Estado</th>
+                    <th class="text-nowrap text-end">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="text-muted">#@item.Id</td>
+                        <td class="fw-semibold">@item.Inmueble?.Direccion</td>
+                        <td>@item.Inquilino?.NombreCompleto</td>
+                        <td>@item.FechaInicio.ToString("dd/MM/yyyy")</td>
+                        <td>@item.FechaFin.ToString("dd/MM/yyyy")</td>
+                        <td>$@item.MontoPorDia.ToString("N2")</td>
+                        <td class="text-success fw-semibold">$@item.MontoTotal.ToString("N2")</td>
+                        <td>
+                            @if (item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge-soft badge-soft-success">
+                                    <i class="bi bi-check-circle me-1"></i>Activa
+                                </span>
+                            }
+                            else if (item.Estado.Equals("Finalizada", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge-soft badge-soft-secondary">
+                                    <i class="bi bi-flag me-1"></i>Finalizada
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge-soft badge-soft-danger">
+                                    <i class="bi bi-x-circle me-1"></i>Cancelada
+                                </span>
+                            }
+                        </td>
+                        <td class="text-nowrap text-end">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-icon btn-info"
+                               title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            @if (item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-icon btn-warning"
+                                   title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-action="Finalizar" asp-route-id="@item.Id" class="btn btn-sm btn-icon btn-danger"
+                                   title="Finalizar">
+                                    <i class="bi bi-flag"></i>
+                                </a>
+                                <a asp-action="Renovar" asp-route-id="@item.Id" class="btn btn-sm btn-icon btn-success"
+                                   title="Renovar">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </a>
+                            }
+                            @if (User.IsInRole("Administrador"))
+                            {
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-icon btn-danger"
+                                   title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="d-flex justify-content-center mt-4">
     @Html.PagedListPager(Model, page => Url.Action("Index", new
     {
         page,
@@ -131,3 +159,170 @@
         PageClasses = new[] { "page-link" }
     })
 </div>
+
+@section Styles {
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #212529;
+            margin: 0 0 4px 0;
+        }
+
+        .page-subtitle {
+            color: #868e96;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-card,
+        .table-card {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .filter-card .card-body {
+            padding: 16px;
+        }
+
+        .table-card {
+            overflow: hidden;
+        }
+
+        .table-card .table {
+            margin: 0;
+        }
+
+        .table-card .table thead th {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 14px 16px;
+            border-top: none;
+        }
+
+        .table-card .table tbody td {
+            padding: 14px 16px;
+            border-color: #f1f3f5;
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .table-card .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .badge-soft {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-soft-success {
+            background-color: #e6f7ed;
+            color: #198754;
+        }
+
+        .badge-soft-secondary {
+            background-color: #eef0f2;
+            color: #6c757d;
+        }
+
+        .badge-soft-danger {
+            background-color: #fdecee;
+            color: #dc3545;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            margin-left: 3px;
+            border: none;
+            color: #ffffff;
+            transition: all 0.15s ease;
+        }
+
+        .btn-icon:hover {
+            transform: translateY(-1px);
+            color: #ffffff;
+        }
+
+        .btn-icon.btn-warning {
+            background-color: #ffc107;
+        }
+
+        .btn-icon.btn-warning:hover {
+            background-color: #e0a800;
+        }
+
+        .btn-icon.btn-info {
+            background-color: #0dcaf0;
+        }
+
+        .btn-icon.btn-info:hover {
+            background-color: #0aa2c0;
+        }
+
+        .btn-icon.btn-success {
+            background-color: #198754;
+        }
+
+        .btn-icon.btn-success:hover {
+            background-color: #146c43;
+        }
+
+        .btn-icon.btn-danger {
+            background-color: #dc3545;
+        }
+
+        .btn-icon.btn-danger:hover {
+            background-color: #b02a37;
+        }
+
+        .page-link {
+            border-radius: 8px;
+            margin: 0 3px;
+            color: #495057;
+            border: 1px solid #e9ecef;
+        }
+
+        .page-link:hover {
+            background-color: #f1f3f5;
+            color: #0d6efd;
+        }
+
+        .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+    </style>
+}

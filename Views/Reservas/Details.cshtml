@@ -7,8 +7,6 @@
     decimal saldoPendiente = ViewBag.SaldoPendiente ?? 0m;
 }
 
-<h1>Detalles de la Reserva</h1>
-
 @if (TempData["Mensaje"] != null)
 {
     <div class="alert alert-@(TempData["Tipo"] ?? "success") alert-dismissible fade show" role="alert">
@@ -18,168 +16,281 @@
 }
 
 <div id="app-pagos">
-    <div>
-        <hr />
-        <dl class="row">
-            <dt class="col-sm-3">ID</dt>
-            <dd class="col-sm-9">@Html.DisplayFor(m => m.Id)</dd>
 
-            <dt class="col-sm-3">Inmueble</dt>
-            <dd class="col-sm-9">@Model.Inmueble?.Direccion</dd>
-
-            <dt class="col-sm-3">Inquilino</dt>
-            <dd class="col-sm-9">@Model.Inquilino?.NombreCompleto</dd>
-
-            <dt class="col-sm-3">Fecha Inicio</dt>
-            <dd class="col-sm-9">@Model.FechaInicio.ToShortDateString()</dd>
-
-            <dt class="col-sm-3">Fecha Fin</dt>
-            <dd class="col-sm-9">@Model.FechaFin.ToShortDateString()</dd>
-
-            @if (Model.FechaFinOriginal.HasValue)
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Detalles de la Reserva</h1>
+            <p class="page-subtitle">Informacion completa de la reserva #@Model.Id</p>
+        </div>
+        <div class="page-actions">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning" title="Editar">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+            @if (Model.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
             {
-                <dt class="col-sm-3">Fecha Fin Original</dt>
-                <dd class="col-sm-9">@Model.FechaFinOriginal.Value.ToShortDateString()</dd>
+                <a asp-action="Finalizar" asp-route-id="@Model.Id" class="btn btn-danger" title="Finalizar">
+                    <i class="bi bi-flag"></i> Finalizar
+                </a>
+                <a asp-action="Renovar" asp-route-id="@Model.Id" class="btn btn-success" title="Renovar">
+                    <i class="bi bi-arrow-clockwise"></i> Renovar
+                </a>
             }
-
-            <dt class="col-sm-3">Monto por Día</dt>
-            <dd class="col-sm-9">@Model.MontoPorDia.ToString("N2")</dd>
-
-            <dt class="col-sm-3">Monto Total</dt>
-            <dd class="col-sm-9">@Model.MontoTotal.ToString("N2")</dd>
-
-            <dt class="col-sm-3">Total Pagado</dt>
-            <dd class="col-sm-9">@totalPagado.ToString("N2")</dd>
-
-            <dt class="col-sm-3">Saldo Pendiente</dt>
-            <dd class="col-sm-9">
-                <strong class="@(saldoPendiente > 0 ? "text-danger" : "text-success")">
-                    @saldoPendiente.ToString("N2")
-                </strong>
-            </dd>
-
-            <dt class="col-sm-3">Estado</dt>
-            <dd class="col-sm-9">
-                @if (Model.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
-                {
-                    <span class="badge bg-success">Activa</span>
-                }
-                else if (Model.Estado.Equals("Finalizada", StringComparison.OrdinalIgnoreCase))
-                {
-                    <span class="badge bg-secondary">Finalizada</span>
-                }
-                else
-                {
-                    <span class="badge bg-danger">Cancelada</span>
-                }
-            </dd>
-
-            <dt class="col-sm-3">Fecha Creación</dt>
-            <dd class="col-sm-9">@Model.FechaCreacion.ToShortDateString()</dd>
-
-            @if (Model.FechaTerminacion.HasValue)
-            {
-                <dt class="col-sm-3">Fecha Terminación</dt>
-                <dd class="col-sm-9">@Model.FechaTerminacion.Value.ToShortDateString()</dd>
-            }
-
-            @if (Model.MultaAplicada.HasValue)
-            {
-                <dt class="col-sm-3">Multa Aplicada</dt>
-                <dd class="col-sm-9">@Model.MultaAplicada.Value.ToString("N2")</dd>
-            }
-
-            @if (User.IsInRole("Administrador"))
-            {
-                <dt class="col-sm-3 border-top pt-3">Usuario Creador</dt>
-                <dd class="col-sm-9 border-top pt-3">
-                    @Model.UsuarioCreador?.NombreCompleto (ID: @Model.IdUsuarioCreador)
-                </dd>
-
-                @if (Model.IdUsuarioTerminacion.HasValue)
-                {
-                    <dt class="col-sm-3">Usuario Terminación</dt>
-                    <dd class="col-sm-9">
-                        @Model.UsuarioTerminacion?.NombreCompleto (ID: @Model.IdUsuarioTerminacion)
-                    </dd>
-                }
-            }
-        </dl>
+            <a asp-action="Index" class="btn btn-outline-secondary" title="Volver">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
     </div>
 
-    <div class="mt-4">
-        <h3>Pagos</h3>
+    <div class="row g-4">
 
-        @if (Model.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
-        {
-            <p>
-                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
-                        data-bs-target="#modalCrearPago" title="Agregar Pago">
-                    <i class="bi bi-plus-circle"></i>
-                </button>
-            </p>
-        }
+        <div class="col-lg-8">
+            <div class="card detail-card">
+                <div class="card-header">
+                    <i class="bi bi-info-circle me-2"></i>Informacion de la Reserva
+                </div>
+                <div class="card-body">
+                    <dl class="detail-list">
 
-        @if (pagos != null && pagos.Any())
-        {
-            <table class="table table-striped table-sm align-middle">
-                <thead>
-                    <tr>
-                        <th>Concepto</th>
-                        <th>Importe</th>
-                        <th>Fecha</th>
-                        <th>Estado</th>
-                        <th class="text-nowrap">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var pago in pagos)
-                    {
-                        <tr>
-                            <td>@pago.Concepto</td>
-                            <td>@pago.Importe.ToString("N2")</td>
-                            <td>@pago.FechaPago.ToShortDateString()</td>
-                            <td>
-                                @if (pago.Estado == 1)
+                        <div class="detail-row">
+                            <dt>Inmueble</dt>
+                            <dd>@Model.Inmueble?.Direccion</dd>
+                        </div>
+
+                        <div class="detail-row">
+                            <dt>Inquilino</dt>
+                            <dd>@Model.Inquilino?.NombreCompleto</dd>
+                        </div>
+
+                        <div class="detail-row">
+                            <dt>Fecha de inicio</dt>
+                            <dd>@Model.FechaInicio.ToString("dd/MM/yyyy")</dd>
+                        </div>
+
+                        <div class="detail-row">
+                            <dt>Fecha de fin</dt>
+                            <dd>@Model.FechaFin.ToString("dd/MM/yyyy")</dd>
+                        </div>
+
+                        @if (Model.FechaFinOriginal.HasValue)
+                        {
+                            <div class="detail-row">
+                                <dt>Fecha fin original</dt>
+                                <dd>@Model.FechaFinOriginal.Value.ToString("dd/MM/yyyy")</dd>
+                            </div>
+                        }
+
+                        <div class="detail-row">
+                            <dt>Monto por dia</dt>
+                            <dd>$@Model.MontoPorDia.ToString("N2")</dd>
+                        </div>
+
+                        <div class="detail-row">
+                            <dt>Monto total</dt>
+                            <dd class="fw-semibold">$@Model.MontoTotal.ToString("N2")</dd>
+                        </div>
+
+                        <div class="detail-row">
+                            <dt>Total pagado</dt>
+                            <dd class="text-success fw-semibold">$@totalPagado.ToString("N2")</dd>
+                        </div>
+
+                        <div class="detail-row">
+                            <dt>Saldo pendiente</dt>
+                            <dd class="@(saldoPendiente > 0 ? "text-danger" : "text-success") fw-semibold">
+                                $@saldoPendiente.ToString("N2")
+                            </dd>
+                        </div>
+
+                        <div class="detail-row">
+                            <dt>Estado</dt>
+                            <dd>
+                                @if (Model.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    <span class="badge bg-success">Activo</span>
+                                    <span class="badge-soft badge-soft-success">
+                                        <i class="bi bi-check-circle me-1"></i>Activa
+                                    </span>
+                                }
+                                else if (Model.Estado.Equals("Finalizada", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge-soft badge-soft-secondary">
+                                        <i class="bi bi-flag me-1"></i>Finalizada
+                                    </span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-danger">Anulado</span>
+                                    <span class="badge-soft badge-soft-danger">
+                                        <i class="bi bi-x-circle me-1"></i>Cancelada
+                                    </span>
                                 }
-                            </td>
-                            <td class="text-nowrap">
-                                <a asp-controller="Pagos" asp-action="Details" asp-route-id="@pago.Id"
-                                   class="btn btn-sm btn-info" title="Ver detalles">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                @if (pago.Estado == 1)
-                                {
-                                    <a asp-controller="Pagos" asp-action="Edit" asp-route-id="@pago.Id"
-                                       class="btn btn-sm btn-warning" title="Editar">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    @if (User.IsInRole("Administrador"))
-                                    {
-                                        <a asp-controller="Pagos" asp-action="Anular" asp-route-id="@pago.Id"
-                                           class="btn btn-sm btn-danger" title="Anular">
-                                            <i class="bi bi-x-circle"></i>
-                                        </a>
-                                    }
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <div class="alert alert-info">
-                <p class="mb-0">No hay pagos registrados para esta reserva.</p>
+                            </dd>
+                        </div>
+
+                        <div class="detail-row">
+                            <dt>Fecha de creacion</dt>
+                            <dd>@Model.FechaCreacion.ToString("dd/MM/yyyy")</dd>
+                        </div>
+
+                        @if (Model.FechaTerminacion.HasValue)
+                        {
+                            <div class="detail-row">
+                                <dt>Fecha de terminacion</dt>
+                                <dd>@Model.FechaTerminacion.Value.ToString("dd/MM/yyyy")</dd>
+                            </div>
+                        }
+
+                        @if (Model.MultaAplicada.HasValue)
+                        {
+                            <div class="detail-row">
+                                <dt>Multa aplicada</dt>
+                                <dd class="text-danger fw-semibold">$@Model.MultaAplicada.Value.ToString("N2")</dd>
+                            </div>
+                        }
+
+                    </dl>
+                </div>
             </div>
-        }
+
+            @if (User.IsInRole("Administrador"))
+            {
+                <div class="card detail-card mt-4">
+                    <div class="card-header">
+                        <i class="bi bi-shield-lock me-2"></i>Auditoria
+                    </div>
+                    <div class="card-body">
+                        <dl class="detail-list">
+
+                            <div class="detail-row">
+                                <dt>Usuario creador</dt>
+                                <dd>
+                                    @Model.UsuarioCreador?.NombreCompleto
+                                    <span class="text-muted">(ID: @Model.IdUsuarioCreador)</span>
+                                </dd>
+                            </div>
+
+                            @if (Model.IdUsuarioTerminacion.HasValue)
+                            {
+                                <div class="detail-row">
+                                    <dt>Usuario terminacion</dt>
+                                    <dd>
+                                        @Model.UsuarioTerminacion?.NombreCompleto
+                                        <span class="text-muted">(ID: @Model.IdUsuarioTerminacion)</span>
+                                    </dd>
+                                </div>
+                            }
+
+                        </dl>
+                    </div>
+                </div>
+            }
+
+            <div class="card table-card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-cash-stack me-2"></i>Pagos</span>
+                    @if (Model.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                data-bs-target="#modalCrearPago">
+                            <i class="bi bi-plus-circle"></i> Agregar Pago
+                        </button>
+                    }
+                </div>
+                <div class="table-responsive">
+                    @if (pagos != null && pagos.Any())
+                    {
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Concepto</th>
+                                    <th>Importe</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th class="text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var pago in pagos)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@pago.Concepto</td>
+                                        <td class="text-success fw-semibold">$@pago.Importe.ToString("N2")</td>
+                                        <td>@pago.FechaPago.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            @if (pago.Estado == 1)
+                                            {
+                                                <span class="badge-soft badge-soft-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Activo
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge-soft badge-soft-danger">
+                                                    <i class="bi bi-x-circle me-1"></i>Anulado
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="text-nowrap text-end">
+                                            <a asp-controller="Pagos" asp-action="Details" asp-route-id="@pago.Id"
+                                               class="btn btn-sm btn-icon btn-info" title="Ver detalles">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            @if (pago.Estado == 1)
+                                            {
+                                                <a asp-controller="Pagos" asp-action="Edit" asp-route-id="@pago.Id"
+                                                   class="btn btn-sm btn-icon btn-warning" title="Editar">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                @if (User.IsInRole("Administrador"))
+                                                {
+                                                    <a asp-controller="Pagos" asp-action="Anular" asp-route-id="@pago.Id"
+                                                       class="btn btn-sm btn-icon btn-danger" title="Anular">
+                                                        <i class="bi bi-x-circle"></i>
+                                                    </a>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No hay pagos registrados para esta reserva.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card summary-card">
+                <div class="card-header">
+                    <i class="bi bi-wallet2 me-2"></i>Resumen Financiero
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6 text-muted">Monto total:</div>
+                        <div class="col-6 text-end fw-semibold">$@Model.MontoTotal.ToString("N2")</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6 text-muted">Total pagado:</div>
+                        <div class="col-6 text-end fw-semibold text-success">$@totalPagado.ToString("N2")</div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-6 fw-semibold">Saldo pendiente:</div>
+                        <div class="col-6 text-end">
+                            <span class="@(saldoPendiente > 0 ? "text-danger" : "text-success") fw-bold fs-5">
+                                $@saldoPendiente.ToString("N2")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div class="modal fade" id="modalCrearPago" tabindex="-1" aria-labelledby="modalCrearPagoLabel" aria-hidden="true">
@@ -198,45 +309,44 @@
                         <input type="hidden" name="Importe" :value="importe" />
 
                         <div class="form-group mb-3">
-                            <label class="control-label">Concepto</label>
+                            <label class="form-label">Concepto</label>
                             <input name="Concepto" class="form-control" v-model="concepto" required />
-                            <span class="text-danger" v-if="errores.concepto">{{ errores.concepto }}</span>
+                            <span class="text-danger small" v-if="errores.concepto">{{ errores.concepto }}</span>
                         </div>
 
                         <div class="form-group mb-3">
-                            <label class="control-label">Fecha de Pago</label>
+                            <label class="form-label">Fecha de pago</label>
                             <input name="FechaPago" class="form-control" type="date" v-model="fechaPago" required />
-                            <span class="text-danger" v-if="errores.fechaPago">{{ errores.fechaPago }}</span>
+                            <span class="text-danger small" v-if="errores.fechaPago">{{ errores.fechaPago }}</span>
                         </div>
 
                         <div class="form-group mb-3">
-                            <label class="control-label">Importe</label>
+                            <label class="form-label">Importe</label>
                             <input class="form-control" type="number" step="0.01" v-model.number="importe" required />
-                            <span class="text-danger" v-if="errores.importe">{{ errores.importe }}</span>
-                            <small class="text-muted">Saldo pendiente: ${{ formatearPrecio(saldoPendiente) }}</small>
+                            <span class="text-danger small" v-if="errores.importe">{{ errores.importe }}</span>
+                            <small class="text-muted d-block mt-1">Saldo pendiente: ${{ formatearPrecio(saldoPendiente) }}</small>
                         </div>
 
-                        <div class="card" v-if="importe > 0">
-                            <div class="card-body">
-                                <div class="row mb-2">
-                                    <div class="col-6"><i class="bi bi-cash me-2 text-success"></i>Importe:</div>
-                                    <div class="col-6 text-end"><strong>${{ formatearPrecio(importe) }}</strong></div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-6"><i class="bi bi-wallet2 me-2 text-warning"></i>Saldo restante:</div>
-                                    <div class="col-6 text-end">
-                                        <strong :class="saldoRestante > 0 ? 'text-danger' : 'text-success'">
-                                            ${{ formatearPrecio(saldoRestante) }}
-                                        </strong>
-                                    </div>
+                        <div class="summary-inline" v-if="importe > 0">
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Importe:</div>
+                                <div class="col-6 text-end fw-semibold">${{ formatearPrecio(importe) }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 text-muted">Saldo restante:</div>
+                                <div class="col-6 text-end">
+                                    <span :class="saldoRestante > 0 ? 'text-danger' : 'text-success'" class="fw-semibold">
+                                        ${{ formatearPrecio(saldoRestante) }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary" :disabled="guardando">
-                            {{ guardando ? 'Guardando...' : 'Guardar' }}
+                            <i class="bi bi-check-circle me-1"></i>
+                            {{ guardando ? 'Guardando...' : 'Guardar Pago' }}
                         </button>
                     </div>
                 </form>
@@ -244,29 +354,221 @@
         </div>
     </div>
 
-    <div class="mt-3">
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning" title="Editar">
-            <i class="bi bi-pencil"></i>
-        </a>
-        @if (Model.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
-        {
-            <a asp-action="Finalizar" asp-route-id="@Model.Id" class="btn btn-danger" title="Finalizar">
-                <i class="bi bi-flag"></i>
-            </a>
-            <a asp-action="Renovar" asp-route-id="@Model.Id" class="btn btn-success" title="Renovar">
-                <i class="bi bi-arrow-clockwise"></i>
-            </a>
-        }
-        <a asp-action="Index" class="btn btn-secondary" title="Volver">
-            <i class="bi bi-arrow-left"></i>
-        </a>
-    </div>
 </div>
 
+@section Styles {
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #212529;
+            margin: 0 0 4px 0;
+        }
+
+        .page-subtitle {
+            color: #868e96;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .detail-card,
+        .table-card,
+        .summary-card {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .detail-card .card-header,
+        .table-card .card-header,
+        .summary-card .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 14px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .detail-card .card-body {
+            padding: 8px 20px;
+        }
+
+        .summary-card .card-body {
+            padding: 20px;
+        }
+
+        .detail-list {
+            margin: 0;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row dt {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #868e96;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .detail-row dd {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #212529;
+            margin: 0;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .badge-soft {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-soft-success {
+            background-color: #e6f7ed;
+            color: #198754;
+        }
+
+        .badge-soft-secondary {
+            background-color: #eef0f2;
+            color: #6c757d;
+        }
+
+        .badge-soft-danger {
+            background-color: #fdecee;
+            color: #dc3545;
+        }
+
+        .table-card .table thead th {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 14px 16px;
+            border-top: none;
+        }
+
+        .table-card .table tbody td {
+            padding: 14px 16px;
+            border-color: #f1f3f5;
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .table-card .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #adb5bd;
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            margin-left: 3px;
+            border: none;
+            color: #ffffff;
+            transition: all 0.15s ease;
+        }
+
+        .btn-icon:hover {
+            transform: translateY(-1px);
+            color: #ffffff;
+        }
+
+        .btn-icon.btn-warning  { background-color: #ffc107; }
+        .btn-icon.btn-warning:hover  { background-color: #e0a800; }
+        .btn-icon.btn-info     { background-color: #0dcaf0; }
+        .btn-icon.btn-info:hover     { background-color: #0aa2c0; }
+        .btn-icon.btn-danger   { background-color: #dc3545; }
+        .btn-icon.btn-danger:hover   { background-color: #b02a37; }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            transition: all 0.15s ease;
+        }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        }
+
+        .summary-inline {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-top: 8px;
+        }
+    </style>
+}
+
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 
     <script>
         const { createApp } = Vue;
@@ -329,12 +631,10 @@
                             window.location.href = response.url;
                         } else {
                             const html = await response.text();
-                            document.open();
-                            document.write(html);
-                            document.close();
+                            document.documentElement.innerHTML = html;
                         }
                     } catch (error) {
-                        alert('Error de conexión: ' + error.message);
+                        alert('Error de conexion: ' + error.message);
                     } finally {
                         this.guardando = false;
                     }
